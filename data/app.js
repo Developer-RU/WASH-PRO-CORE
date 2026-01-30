@@ -134,12 +134,13 @@ document.addEventListener('DOMContentLoaded', ()=>{
     document.querySelector('nav ul li[data-page="tasks"] span').textContent = t.nav?.tasks || 'Tasks';
     document.querySelector('nav ul li[data-page="system"] span').textContent = t.nav?.system || 'System';
     document.querySelector('nav ul li[data-page="wifi"] span').textContent = t.nav?.wifi || 'Wi‑Fi';
+    document.querySelector('nav ul li[data-page="update"] span').textContent = t.nav?.update || 'Update';
     document.querySelector('nav ul li[data-page="reboot"] span').textContent = t.nav?.reboot || 'Reboot';
 
     document.getElementById('infoTitle').textContent = t.info?.title || 'Information';
     document.getElementById('tasksTitle').textContent = t.tasks?.title || 'Tasks';
     document.getElementById('systemTitle').textContent = t.system?.title || 'System';
-    document.getElementById('fwTitle').textContent = t.system?.fw || (t.system?.title || 'Firmware / Filesystem');
+    document.getElementById('updateTitle').textContent = t.update?.title || 'Update';
     document.getElementById('wifiTitle').textContent = t.wifi?.title || 'Wireless network';
     document.getElementById('rebootTitle').textContent = t.reboot?.title || 'Reboot';
     document.getElementById('themeTitle').textContent = t.saveTheme?.title || 'Appearance';
@@ -153,6 +154,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
     document.getElementById('rebootBtn').querySelector('.btn-text').textContent = t.reboot?.button || 'Reboot';
     document.getElementById('saveScriptBtn').querySelector('.btn-text').textContent = t.save?.button || 'Save';
 
+    document.getElementById('closeEditor').textContent = t.tasks?.closeEditor || 'Close';
     const ssid = document.querySelector('#wifiForm input[name="ssid"]'); if (ssid) ssid.placeholder = t.wifi?.ssidPlaceholder || 'SSID';
     const pass = document.querySelector('#wifiForm input[name="pass"]'); if (pass) pass.placeholder = t.wifi?.passPlaceholder || 'Password';
 
@@ -165,18 +167,23 @@ document.addEventListener('DOMContentLoaded', ()=>{
     if (document.getElementById('system').classList.contains('active')) loadSystem();
   }
 
-  function loadInfo(){
-    fetch('/api/info').then(r=>r.json()).then(j=>{
+  async function loadInfo(){
+    try {
+      const [infoRes, tasksRes] = await Promise.all([fetch('/api/info'), fetch('/api/tasks')]);
+      const j = await infoRes.json();
+      const tasks = await tasksRes.json();
+      const tasksArr = (tasks && tasks.tasks) ? tasks.tasks : (Array.isArray(tasks) ? tasks : []);
+      const runningTasksCount = tasksArr.filter(t => t.state === 'running').length;
       const t = TRANSLATIONS.info || {};
       document.getElementById('info').innerHTML = `<table>
         <tr><td>${t.serial || 'Serial'}</td><td>${j.serial || ''}</td></tr>
         <tr><td>${t.licenseActive || 'License active'}</td><td>${j.licenseActive || ''}</td></tr>
         <tr><td>${t.freeHeap || 'Free heap'}</td><td>${j.freeHeap || ''}</td></tr>
         <tr><td>${t.heapSize || 'Heap size'}</td><td>${j.heapSize || ''}</td></tr>
-        <tr><td>${t.userScripts || 'User scripts'}</td><td>${j.userScripts || ''}</td></tr>
-        <tr><td>${t.runningTasks || 'Running tasks'}</td><td>${j.runningTasks || ''}</td></tr>
+        <tr><td>${t.createdTasks || 'Created tasks'}</td><td>${tasksArr.length}</td></tr>
+        <tr><td>${t.runningTasks || 'Running tasks'}</td><td>${runningTasksCount}</td></tr>
       </table>`;
-    });
+    } catch(e) { console.error("Failed to load info:", e); }
   }
 
   function loadTasks(){
@@ -255,14 +262,14 @@ document.addEventListener('DOMContentLoaded', ()=>{
           });
   
           const scriptLabel = t.hasScript? (TRANSLATIONS.tasks?.editScript||'Edit script') : (TRANSLATIONS.tasks?.attachScript||'Attach script');
-          const scriptIcon = t.hasScript ? '<i class="fas fa-file-lines"></i>' : '<i class="fas fa-paperclip"></i>';
-          const scriptBtn = makeAction(scriptIcon, scriptLabel, ()=>{ openScriptEditor(t.id, t.name); });
+          const scriptIconHtml = t.hasScript ? '<i class="fas fa-file-lines"></i>' : '<i class="fas fa-paperclip"></i>';
+          const scriptBtn = makeAction(scriptIconHtml, scriptLabel, ()=>{ openScriptEditor(t.id, t.name); });
   
           const delLabel = TRANSLATIONS.tasks?.delete || 'Delete';
           const delBtn = makeAction('<i class="fas fa-trash-can"></i>', delLabel, async ()=>{ if (!confirm(TRANSLATIONS.tasks?.deleteConfirm || 'Delete task?')) return; await fetch('/api/tasks/delete', { method:'POST', body: new URLSearchParams({id:t.id}) }); loadTasksEnhanced(); });
   
           const runLabel = TRANSLATIONS.tasks?.run || 'Run';
-          const runBtn = makeAction('<i class="fas fa-play"></i>', runLabel, async ()=>{ await fetch('/api/tasks/run', { method:'POST', body: new URLSearchParams({id: t.id}) }); alert(TRANSLATIONS.tasks?.runStarted || 'Run requested'); });
+          const runBtn = makeAction('<i class="fas fa-play"></i>', runLabel, async ()=>{ await fetch('/api/tasks/run', { method:'POST', body: new URLSearchParams({id: t.id}) }); loadTasksEnhanced(); alert(TRANSLATIONS.tasks?.runStarted || 'Run requested'); });
   
           actions.appendChild(editBtn); actions.appendChild(scriptBtn); actions.appendChild(runBtn); actions.appendChild(delBtn);
           card.appendChild(info); card.appendChild(actions);
@@ -297,10 +304,9 @@ document.addEventListener('DOMContentLoaded', ()=>{
   document.getElementById('saveScriptBtn')?.addEventListener('click', async ()=>{
     if (!currentEditingTask) return;
     const content = document.getElementById('scriptContent').value;
-    // Send JSON payload to avoid multipart/parser issues
-    const payload = JSON.stringify({ id: currentEditingTask, script: content });
-    console.log('POST /api/tasks/script JSON', {id: currentEditingTask, len: content.length});
-    const r = await fetch('/api/tasks/script', { method:'POST', headers: {'Content-Type':'application/json'}, body: payload });
+    const taskName = document.getElementById('editorTitle').textContent.replace(`${TRANSLATIONS.tasks?.scriptFor || 'Script:'} `, '');
+    const payload = new URLSearchParams({ id: currentEditingTask, name: taskName, script: content });
+    const r = await fetch('/api/tasks', { method:'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: payload });
     const txt = await r.text();
     if (r.ok){ alert(TRANSLATIONS.alerts?.saved || 'Saved'); document.getElementById('scriptEditor').style.display='none'; loadTasksEnhanced(); }
     else { console.error('Save script failed:', r.status, txt); alert('Failed to save: ' + txt); }

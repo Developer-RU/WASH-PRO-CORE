@@ -211,7 +211,7 @@ void setup() {
       if (script.length()==0){ Serial.println("No script content provided"); request->send(400,"application/json","{\"error\":\"empty script\"}"); return; }
 
       Serial.printf("Saving script for %s length=%u\n", id.c_str(), script.length());
-      bool ok = tasks.saveScript(id, script);
+      bool ok = tasks.saveScript(id, "", script);
       if (ok) request->send(200, "application/json", "{\"ok\":true}");
       else request->send(500, "application/json", "{\"error\":\"failed to write\"}");
     },
@@ -252,7 +252,8 @@ void setup() {
     if (request->hasParam("id", true)) {
       String id = request->getParam("id", true)->value();
       Serial.printf("Run requested for task: %s\n", id.c_str());
-      request->send(200, "application/json", "{\"ok\":true}");
+      bool ok = tasks.runTask(id);
+      request->send(ok ? 200 : 500, "application/json", ok ? "{\"ok\":true}" : "{\"error\":\"failed to run\"}");
     } else {
       request->send(400, "application/json", "{\"error\":\"missing id\"}");
     }

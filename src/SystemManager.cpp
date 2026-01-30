@@ -1,5 +1,6 @@
 #include "SystemManager.h"
 #include <Update.h>
+#include <LittleFS.h>
 #include <WiFi.h>
 #include <esp_system.h>
 
