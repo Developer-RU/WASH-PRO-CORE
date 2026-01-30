@@ -1,0 +1,168 @@
+:root{ --page-bg: #ffffff; --text-color: #222; --accent-color: #32BAC2; --button-bg: var(--accent-color); --button-text: #fff; --link-color: var(--accent-color); --header-bg: #f7f7f7; --header-border: #eee; --sidebar-bg: #222; --sidebar-text: #fff; --sidebar-hover: #444; --input-bg: #fff; --input-color: #222; --input-border: 1px solid #ccc; --input-radius: 8px; --input-padding: 8px 10px; --input-height: 40px; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; background:var(--page-bg); color:var(--text-color); }
+.app { display: flex; min-height: 100vh; }
+.sidebar { width: 220px; background:var(--sidebar-bg); color:var(--sidebar-text); padding:20px; transition: transform .25s ease-in-out; }
+.sidebar .brand { font-weight:700; margin-bottom:8px }
+.sidebar ul { list-style:none; padding:0; margin:0; }
+.sidebar ul li { padding:10px; cursor:pointer; border-radius:4px; display: flex; align-items: center; gap: 12px; }
+.sidebar ul li.active, .sidebar ul li:hover { background:var(--sidebar-hover); }
+.content { flex:1; }
+header { display:flex; align-items:center; gap:12px; padding:12px; background:var(--header-bg); border-bottom:1px solid var(--header-border); }
+
+#toggle {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--text-color);
+  cursor: pointer;
+}
+
+.hamburger-box {
+  width: 30px;
+  height: 24px;
+  display: inline-block;
+  position: relative;
+}
+
+.hamburger-inner,
+.hamburger-inner::before,
+.hamburger-inner::after {
+  width: 30px;
+  height: 3px;
+  background-color: #fff;
+  border-radius: 4px;
+  position: absolute;
+  transition-property: transform;
+  transition-duration: 0.15s;
+  transition-timing-function: ease;
+}
+
+.hamburger-inner {
+  display: block;
+  top: 50%;
+  margin-top: -1.5px;
+}
+
+.hamburger-inner::before,
+.hamburger-inner::after {
+  content: "";
+  display: block;
+}
+
+.hamburger-inner::before {
+  top: -10px;
+}
+
+.hamburger-inner::after {
+  bottom: -10px;
+}
+
+#toggle.is-active .hamburger-inner {
+  transform: rotate(45deg);
+}
+
+#toggle.is-active .hamburger-inner::before {
+  top: 0;
+  opacity: 0;
+}
+
+#toggle.is-active .hamburger-inner::after {
+  bottom: 0;
+  transform: rotate(-90deg);
+}
+
+
+/* Make the info and system pages consistently use a responsive table */
+#info table, #systemInfo table { width:100%; border-collapse:collapse; margin-top:8px; border:1px solid rgba(0,0,0,0.08); border-radius:6px; overflow:hidden; }
+#info td, #systemInfo td { padding:8px 10px; border:1px solid rgba(0,0,0,0.06); }
+#info tr td:first-child, #systemInfo tr td:first-child { font-weight:600; width:40%; color:var(--text-color); }
+#info tr td:last-child, #systemInfo tr td:last-child { text-align:right; color:var(--text-color); }
+#info tr:last-child td, #systemInfo tr:last-child td { border-bottom:none; }
+
+main { padding:20px }
+.page { display:none }
+.page.active { display:block }
+
+/* Inputs, selects, textarea, buttons use theme variables */
+input[type=number], input[type=text], input[type=password], input[type=date], input[type=time], input[type=color], select, textarea {
+  width:100%; border-radius:var(--input-radius); padding:var(--input-padding); color:var(--input-color); border:var(--input-border); background:var(--input-bg); vertical-align:middle; position:relative; margin:6px 4px; font-size:16px; height:var(--input-height); box-sizing:border-box; }
+select{cursor:pointer}
+textarea{width:100%; max-width:100%;}
+input:focus, select:focus, textarea:focus{ outline:none; border-color:var(--accent-color); box-shadow:0 0 0 3px rgba(0,0,0,0.05); }
+input[type=submit], input[type=button], button{ height:55px; font-size:20px; background:var(--button-bg); color:var(--button-text); border:none; border-radius:8px; cursor:pointer; }
+input[type=submit]:hover, input[type=button]:hover, button:hover{ filter:brightness(0.95); }
+
+/* Button-like inputs: make file picker and selected text fields look like buttons */
+input.btn-like, select.btn-like {
+  display:flex; align-items:center; justify-content:flex-start; width:100%; height:55px; font-size:16px; background:var(--button-bg); color:var(--button-text); border:none; border-radius:8px; padding:0 12px; cursor:pointer; box-sizing:border-box;
+}
+
+/* For plain text inputs styled as buttons, keep text left-aligned */
+input.btn-like[type="text"], input.btn-like[type="password"], input.btn-like[type="number"] { text-align:left; }
+
+/* Form row layout */
+.form-row { display:flex; flex-direction:column; gap:6px; margin-bottom:12px; align-items:stretch; }
+.form-row label { font-weight:600; color:var(--text-color); font-size:14px; }
+
+/* Style the file selector button (modern browsers) */
+input[type=file].btn-like { padding:6px 12px; border:1px solid rgba(0,0,0,0.08); border-radius:8px; background:transparent; }
+input[type=file].btn-like::file-selector-button { background:var(--button-bg); color:var(--button-text); border:1px solid rgba(0,0,0,0.12); padding:8px 12px; margin-right:12px; border-radius:8px; cursor:pointer; font-size:16px; box-shadow: 0 1px 0 rgba(255,255,255,0.03) inset, 0 2px 6px rgba(0,0,0,0.06); }
+input[type=file].btn-like::file-selector-button:hover { filter:brightness(0.95); box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 4px 8px rgba(0,0,0,0.08); }
+
+/* Hover & focus states */
+input.btn-like:hover, input.btn-like:focus { filter:brightness(0.98); outline:none; box-shadow:0 0 0 3px rgba(0,0,0,0.03); }
+
+/* Placeholder color for button-like inputs */
+input.btn-like::placeholder { color: rgba(255,255,255,0.85); }
+
+@media (max-width: 700px) {
+  .sidebar { position:fixed; left:0; top:0; bottom:0; transform: translateX(-100%); z-index:1000 }
+  .sidebar.open { transform: translateX(0); }
+  .content { margin-left:0 }
+
+  /* When sidebar is collapsed (hidden) on small screens, ensure header title is white regardless of theme */
+  .sidebar:not(.open) + .content header h1 { color: #fff; }
+}
+
+/* Tasks list */
+#tasksList { display:flex; flex-direction:column; gap:12px; margin-top:12px; }
+.task-card { border:1px solid rgba(0,0,0,0.06); padding:12px; border-radius:8px; display:flex; align-items:center; justify-content:space-between; gap:12px; background:var(--page-bg); }
+.task-info { display:flex; flex-direction:column; gap:6px; }
+.task-actions { display:flex; gap:8px; }
+.task-actions button { height:40px; font-size:14px; padding:6px 10px; display:flex; align-items:center; gap:8px; border-radius:6px; background:var(--button-bg); color:var(--button-text); border:none; cursor:pointer; }
+.task-actions button .icon { display:inline-block; width:20px; text-align:center; }
+.task-actions button .label { display:inline-block; }
+
+/* Mobile: show icons only for task action buttons */
+@media (max-width: 700px) {
+  .task-actions button { padding:8px; height:40px; }
+  .task-actions button .label { display:none; }
+  .task-actions button .icon { font-size:18px; }
+}
+
+/* Modal editor */
+.modal { position:fixed; left:0; top:0; right:0; bottom:0; background:rgba(0,0,0,0.4); z-index:2000; display:flex; align-items:center; justify-content:center; }
+.modal-content { width:90%; max-width:1000px; background:var(--page-bg); border-radius:10px; box-shadow:0 10px 30px rgba(0,0,0,0.3); overflow:hidden; border:1px solid rgba(0,0,0,0.06); }
+.modal-header, .modal-footer { padding:12px; border-bottom:1px solid rgba(0,0,0,0.04); display:flex; align-items:center; justify-content:space-between; }
+.modal-body { padding:12px; }
+.editor-columns { display:flex; gap:12px; }
+#scriptContent { width:100%; min-height:320px; font-family: monospace; font-size:14px; padding:12px; border:1px solid rgba(0,0,0,0.06); border-radius:8px; resize:vertical; background:var(--page-bg); color:var(--text-color); }
+.builtins { width:240px; background:rgba(0,0,0,0.02); padding:12px; border-radius:8px; }
+.builtins h4 { margin-top:0; }
+.builtins ul { list-style:none; padding:0; margin:0; }
+.builtins li { padding:6px 8px; border-radius:6px; cursor:default; font-family:monospace; font-size:13px; background:transparent; margin-bottom:6px; }
+.builtins li:hover { background:rgba(0,0,0,0.03); }
+
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+

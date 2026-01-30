@@ -1,0 +1,14 @@
+{
+  "brand": "WASH-PRO",
+  "nav": {"home":"الرئيسية","tasks":"المهام","system":"النظام","wifi":"Wi‑Fi","reboot":"إعادة التشغيل"},
+  "info": {"title":"معلومات","serial":"الرقم التسلسلي","licenseActive":"الترخيص مفعل","freeHeap":"المساحة الحرة","heapSize":"حجم الذاكرة","userScripts":"سكربتات المستخدم","runningTasks":"المهام التشغيلية"},
+  "tasks":{"title":"المهام"},
+  "system":{"title":"النظام","sw":"البرنامج","theme":"المظهر","language":"اللغة","fw":"البرنامج الثابت / نظام الملفات"},
+  "firmware":{"uploadButton":"تحميل البرنامج (OTA)"},
+  "fs":{"uploadButton":"تحميل إلى نظام الملفات"},
+  "save":{"button":"حفظ"},
+  "saveTheme":{"button":"حفظ المظهر"},
+  "wifi":{"title":"الشبكة اللاسلكية","ssidPlaceholder":"SSID","passPlaceholder":"كلمة المرور","saveButton":"حفظ والاتصال","connected":"متصل","failed":"فشل الاتصال"},
+  "reboot":{"title":"إعادة التشغيل","typeLabel":"النوع:","typeSoft":"ناعم","typeHard":"قاسي","delayLabel":"التأخير (ث):","button":"إعادة التشغيل"},
+  "alerts":{"selectFile":"اختر ملفًا","saved":"تم الحفظ","themeSaved":"تم حفظ المظهر","uploadStarted":"تم بدء التحميل. سيعيد الجهاز التشغيل بعد التحديث.","fileUploaded":"تم تحميل الملف"}
+}

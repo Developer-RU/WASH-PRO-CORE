@@ -1,0 +1,14 @@
+{
+  "brand": "WASH-PRO",
+  "nav": {"home":"Start","tasks":"Taken","system":"Systeem","wifi":"Wi‑Fi","reboot":"Herstart"},
+  "info": {"title":"Informatie","serial":"Serienummer","licenseActive":"Licentie actief","freeHeap":"Vrije heap","heapSize":"Heap grootte","userScripts":"Gebruikersscripts","runningTasks":"Lopende taken"},
+  "tasks":{"title":"Taken"},
+  "system":{"title":"Systeem","sw":"SW","theme":"Thema","language":"Taal","fw":"Firmware / Bestandssysteem"},
+  "firmware":{"uploadButton":"Firmware uploaden (OTA)"},
+  "fs":{"uploadButton":"Uploaden naar bestandssysteem"},
+  "save":{"button":"Opslaan"},
+  "saveTheme":{"button":"Thema opslaan"},
+  "wifi":{"title":"Draadloos netwerk","ssidPlaceholder":"SSID","passPlaceholder":"Wachtwoord","saveButton":"Opslaan en verbinden","connected":"Verbonden","failed":"Verbinding mislukt"},
+  "reboot":{"title":"Herstart","typeLabel":"Type:","typeSoft":"Zacht","typeHard":"Hard","delayLabel":"Vertraging (sec):","button":"Herstart"},
+  "alerts":{"selectFile":"Selecteer bestand","saved":"Opgeslagen","themeSaved":"Thema opgeslagen","uploadStarted":"Upload gestart. Het apparaat wordt herstart na de update.","fileUploaded":"Bestand geüpload"}
+}

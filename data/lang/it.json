@@ -1,0 +1,14 @@
+{
+  "brand": "WASH-PRO",
+  "nav": {"home":"Home","tasks":"Attività","system":"Sistema","wifi":"Wi‑Fi","reboot":"Riavvia"},
+  "info": {"title":"Informazioni","serial":"Seriale","licenseActive":"Licenza attiva","freeHeap":"Heap libero","heapSize":"Dimensione heap","userScripts":"Script utente","runningTasks":"Attività in esecuzione"},
+  "tasks":{"title":"Attività"},
+  "system":{"title":"Sistema","sw":"SW","theme":"Tema","language":"Lingua","fw":"Firmware / File system"},
+  "firmware":{"uploadButton":"Carica firmware (OTA)"},
+  "fs":{"uploadButton":"Carica nel file system"},
+  "save":{"button":"Salva"},
+  "saveTheme":{"button":"Salva tema"},
+  "wifi":{"title":"Rete wireless","ssidPlaceholder":"SSID","passPlaceholder":"Password","saveButton":"Salva e connetti","connected":"Connesso","failed":"Connessione fallita"},
+  "reboot":{"title":"Riavvio","typeLabel":"Tipo:","typeSoft":"Soft","typeHard":"Hard","delayLabel":"Ritardo (sec):","button":"Riavvia"},
+  "alerts":{"selectFile":"Seleziona file","saved":"Salvato","themeSaved":"Tema salvato","uploadStarted":"Caricamento avviato. Il dispositivo si riavvierà dopo l'aggiornamento.","fileUploaded":"File caricato"}
+}

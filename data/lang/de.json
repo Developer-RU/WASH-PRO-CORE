@@ -1,0 +1,14 @@
+{
+  "brand": "WASH-PRO",
+  "nav": {"home":"Start","tasks":"Aufgaben","system":"System","wifi":"Wi‑Fi","reboot":"Neustart"},
+  "info": {"title":"Information","serial":"Seriennummer","licenseActive":"Lizenz aktiv","freeHeap":"Freier Heap","heapSize":"Heap Größe","userScripts":"Benutzer‑Skripte","runningTasks":"Laufende Aufgaben"},
+  "tasks":{"title":"Aufgaben"},
+  "system":{"title":"System","sw":"SW","theme":"Thema","language":"Sprache","fw":"Firmware / Dateisystem"},
+  "firmware":{"uploadButton":"Firmware hochladen (OTA)"},
+  "fs":{"uploadButton":"Ins Dateisystem hochladen"},
+  "save":{"button":"Speichern"},
+  "saveTheme":{"button":"Thema speichern"},
+  "wifi":{"title":"Drahtlosnetz","ssidPlaceholder":"SSID","passPlaceholder":"Passwort","saveButton":"Speichern und verbinden","connected":"Verbunden","failed":"Verbindung fehlgeschlagen"},
+  "reboot":{"title":"Neustart","typeLabel":"Typ:","typeSoft":"Soft","typeHard":"Hard","delayLabel":"Verzögerung (sek):","button":"Neustarten"},
+  "alerts":{"selectFile":"Datei auswählen","saved":"Gespeichert","themeSaved":"Thema gespeichert","uploadStarted":"Upload gestartet. Gerät wird nach dem Update neu gestartet.","fileUploaded":"Datei hochgeladen"}
+}

@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WASH-PRO-CORE</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="/style.css">
+  <link id="theme" rel="stylesheet" href="">
+</head>
+<body>
+  <div class="app">
+    <nav id="sidebar" class="sidebar">
+      <div class="brand">WASH-PRO</div>
+      <ul>
+        <li data-page="home" class="active" title="Главная"><i class="fas fa-home"></i> <span>Главная</span></li>
+        <li data-page="tasks" title="Задачи"><i class="fas fa-tasks"></i> <span>Задачи</span></li>
+        <li data-page="system" title="Система"><i class="fas fa-cogs"></i> <span>Система</span></li>
+        <li data-page="wifi" title="Сеть"><i class="fas fa-wifi"></i> <span>Сеть</span></li>
+        <li data-page="reboot" title="Перезагрузка"><i class="fas fa-power-off"></i> <span>Перезагрузка</span></li>
+      </ul>
+    </nav>
+
+    <div class="content">
+      <header>
+        <button id="toggle" class="hamburger">
+          <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+          </span>
+        </button>
+        <h1 id="title">Главная</h1>
+      </header>
+
+      <main>
+        <section id="home" class="page active">
+          <h2 id="infoTitle">Информация</h2>
+          <div id="info"></div>
+        </section>
+
+        <section id="tasks" class="page">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+            <h2 id="tasksTitle">Задачи</h2>
+            <div>
+              <button id="createTaskBtn" title="Создать задачу"><i class="fas fa-plus"></i> <span class="btn-text">Создать задачу</span></button>
+            </div>
+          </div>
+          <div id="tasksList"></div>
+        </section>
+
+        <section id="system" class="page">
+          <h2 id="systemTitle">Система</h2>
+          <div id="systemInfo"></div>
+          <h3 id="fwTitle">Прошивка / Файловая система</h3>
+          <form id="uploadFirmware" enctype="multipart/form-data">
+            <div class="form-row">
+              <label for="firmwareFile">Файл прошивки</label>
+              <input id="firmwareFile" class="btn-like" type="file" name="firmware" />
+            </div>
+            <button id="uploadFirmwareBtn" title="Загрузить прошивку (OTA)" type="submit"><i class="fas fa-microchip"></i> <span class="btn-text">Загрузить прошивку (OTA)</span></button>
+          </form>
+          <form id="uploadFS" enctype="multipart/form-data">
+            <div class="form-row">
+              <label for="fsFile">Файл для ФС</label>
+              <input id="fsFile" class="btn-like" type="file" name="fs" />
+            </div>
+            <button id="uploadFSBtn" title="Загрузить в файловую систему" type="submit"><i class="fas fa-file-arrow-up"></i> <span class="btn-text">Загрузить в файловую систему</span></button>
+          </form>
+          <h3 id="langTitle">Язык</h3>
+          <select id="language"></select>
+          <button id="saveLang" title="Сохранить язык"><i class="fas fa-save"></i> <span class="btn-text">Сохранить</span></button>
+
+          <h3 id="themeTitle">Оформление</h3>
+          <select id="themeSelect"></select>
+          <button id="saveTheme" title="Сохранить тему"><i class="fas fa-palette"></i> <span class="btn-text">Сохранить</span></button>
+        </section>
+
+        <section id="wifi" class="page">
+          <h2 id="wifiTitle">Беспроводная сеть</h2>
+          <form id="wifiForm">
+            <div class="form-row">
+              <label for="ssidInput">SSID</label>
+              <input id="ssidInput" class="btn-like" name="ssid" placeholder="SSID" />
+            </div>
+            <div class="form-row">
+              <label for="passInput">Пароль</label>
+              <input id="passInput" class="btn-like" name="pass" placeholder="Пароль" />
+            </div>
+            <button id="wifiSaveBtn" title="Сохранить и подключиться" type="submit"><i class="fas fa-wifi"></i> <span class="btn-text">Сохранить и подключиться</span></button>
+          </form>
+          <div id="wifiResult"></div>
+        </section>
+
+        <section id="reboot" class="page">
+          <h2 id="rebootTitle">Перезагрузка</h2>
+          <form id="rebootForm">
+            <label id="rebootTypeLabel">Тип:</label>
+            <select name="type">
+              <option value="soft">Мягкая</option>
+              <option value="hard">Жёсткая</option>
+            </select>
+            <label id="rebootDelayLabel">Задержка (сек):</label>
+            <input type="number" name="delay" min="0" value="0" />
+            <button id="rebootBtn" title="Перезагрузить" type="submit"><i class="fas fa-power-off"></i> <span class="btn-text">Перезагрузить</span></button>
+          </form>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- Script editor modal -->
+  <div id="scriptEditor" class="modal" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="editorTitle">Редактор скрипта</h3>
+        <button id="closeEditor" title="Закрыть редактор"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="editor-columns">
+          <textarea id="scriptContent" placeholder="-- Lua script here" spellcheck="false"></textarea>
+          <aside class="builtins">
+            <h4>Встроенные функции</h4>
+            <ul id="builtinList"></ul>
+          </aside>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="saveScriptBtn" title="Сохранить скрипт"><i class="fas fa-save"></i> <span class="btn-text">Сохранить</span></button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

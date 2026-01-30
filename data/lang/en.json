@@ -1,0 +1,14 @@
+{
+  "brand": "WASH-PRO",
+  "nav": {"home":"Home","tasks":"Tasks","system":"System","wifi":"Wi‑Fi","reboot":"Reboot"},
+  "info": {"title":"Information","serial":"Serial","licenseActive":"License active","freeHeap":"Free heap","heapSize":"Heap size","userScripts":"User scripts","runningTasks":"Running tasks"},
+  "tasks":{"title":"Tasks","createPrompt":"Enter task name","renamePrompt":"Rename task","editScript":"Edit script","attachScript":"Attach script","delete":"Delete","deleteConfirm":"Delete task?","createPrompt":"Task name","scriptFor":"Script for","run":"Run","runStarted":"Run requested"},
+  "system":{"title":"System","sw":"SW","theme":"Theme","language":"Language","fw":"Firmware / Filesystem"},
+  "firmware":{"uploadButton":"Upload firmware (OTA)"},
+  "fs":{"uploadButton":"Upload to filesystem"},
+  "save":{"button":"Save"},
+  "saveTheme":{"button":"Save theme"},
+  "wifi":{"title":"Wireless network","ssidPlaceholder":"SSID","passPlaceholder":"Password","saveButton":"Save and connect","connected":"Connected","failed":"Failed to connect"},
+  "reboot":{"title":"Reboot","typeLabel":"Type:","typeSoft":"Soft","typeHard":"Hard","delayLabel":"Delay (sec):","button":"Reboot"},
+  "alerts":{"selectFile":"Select file","saved":"Saved","themeSaved":"Theme saved","uploadStarted":"Upload started. Device will restart after update.","fileUploaded":"File uploaded"}
+}

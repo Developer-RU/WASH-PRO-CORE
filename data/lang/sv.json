@@ -1,0 +1,14 @@
+{
+  "brand": "WASH-PRO",
+  "nav": {"home":"Start","tasks":"Uppgifter","system":"System","wifi":"Wi‑Fi","reboot":"Starta om"},
+  "info": {"title":"Information","serial":"Serienummer","licenseActive":"Licens aktiv","freeHeap":"Ledigt minne","heapSize":"Heap storlek","userScripts":"Användarskript","runningTasks":"Körande uppgifter"},
+  "tasks":{"title":"Uppgifter"},
+  "system":{"title":"System","sw":"SW","theme":"Tema","language":"Språk","fw":"Firmware / Filsystem"},
+  "firmware":{"uploadButton":"Ladda upp firmware (OTA)"},
+  "fs":{"uploadButton":"Ladda upp till filsystemet"},
+  "save":{"button":"Spara"},
+  "saveTheme":{"button":"Spara tema"},
+  "wifi":{"title":"Trådlöst nätverk","ssidPlaceholder":"SSID","passPlaceholder":"Lösenord","saveButton":"Spara och anslut","connected":"Ansluten","failed":"Misslyckades att ansluta"},
+  "reboot":{"title":"Starta om","typeLabel":"Typ:","typeSoft":"Mjuk","typeHard":"Hård","delayLabel":"Fördröjning (sek):","button":"Starta om"},
+  "alerts":{"selectFile":"Välj fil","saved":"Sparat","themeSaved":"Tema sparat","uploadStarted":"Uppladdning startad. Enheten startar om efter uppdateringen.","fileUploaded":"Fil uppladdad"}
+}

@@ -1,0 +1,14 @@
+{
+  "brand": "WASH-PRO",
+  "nav": {"home":"Koti","tasks":"Tehtävät","system":"Järjestelmä","wifi":"Wi‑Fi","reboot":"Käynnistä uudelleen"},
+  "info": {"title":"Tietoa","serial":"Sarjanumero","licenseActive":"Lisenssi aktiivinen","freeHeap":"Vapaa pino","heapSize":"Pinon koko","userScripts":"Käyttäjän skriptit","runningTasks":"Käynnissä olevat tehtävät"},
+  "tasks":{"title":"Tehtävät"},
+  "system":{"title":"Järjestelmä","sw":"SW","theme":"Teema","language":"Kieli","fw":"Firmware / Tiedostojärjestelmä"},
+  "firmware":{"uploadButton":"Lähetä firmware (OTA)"},
+  "fs":{"uploadButton":"Lähetä tiedostojärjestelmään"},
+  "save":{"button":"Tallenna"},
+  "saveTheme":{"button":"Tallenna teema"},
+  "wifi":{"title":"Langaton verkko","ssidPlaceholder":"SSID","passPlaceholder":"Salasana","saveButton":"Tallenna ja yhdistä","connected":"Yhdistetty","failed":"Epäonnistui yhdistettäessä"},
+  "reboot":{"title":"Käynnistä uudelleen","typeLabel":"Tyyppi:","typeSoft":"Pehmeä","typeHard":"Kova","delayLabel":"Viive (sek):","button":"Käynnistä uudelleen"},
+  "alerts":{"selectFile":"Valitse tiedosto","saved":"Tallennettu","themeSaved":"Teema tallennettu","uploadStarted":"Lähetys alkanut. Laite käynnistyy uudelleen päivityksen jälkeen.","fileUploaded":"Tiedosto ladattu"}
+}

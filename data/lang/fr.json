@@ -1,0 +1,14 @@
+{
+  "brand": "WASH-PRO",
+  "nav": {"home":"Accueil","tasks":"Tâches","system":"Système","wifi":"Wi‑Fi","reboot":"Redémarrer"},
+  "info": {"title":"Informations","serial":"Série","licenseActive":"Licence active","freeHeap":"Heap libre","heapSize":"Taille du heap","userScripts":"Scripts utilisateur","runningTasks":"Tâches en cours"},
+  "tasks":{"title":"Tâches"},
+  "system":{"title":"Système","sw":"SW","theme":"Thème","language":"Langue","fw":"Firmware / Système de fichiers"},
+  "firmware":{"uploadButton":"Téléverser le firmware (OTA)"},
+  "fs":{"uploadButton":"Téléverser dans le système de fichiers"},
+  "save":{"button":"Enregistrer"},
+  "saveTheme":{"button":"Enregistrer le thème"},
+  "wifi":{"title":"Réseau sans fil","ssidPlaceholder":"SSID","passPlaceholder":"Mot de passe","saveButton":"Enregistrer et connecter","connected":"Connecté","failed":"Échec de la connexion"},
+  "reboot":{"title":"Redémarrage","typeLabel":"Type:","typeSoft":"Soft","typeHard":"Hard","delayLabel":"Délai (sec):","button":"Redémarrer"},
+  "alerts":{"selectFile":"Sélectionnez un fichier","saved":"Enregistré","themeSaved":"Thème enregistré","uploadStarted":"Téléversement démarré. L'appareil redémarrera après la mise à jour.","fileUploaded":"Fichier téléversé"}
+}

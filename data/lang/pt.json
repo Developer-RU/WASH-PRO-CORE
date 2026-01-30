@@ -1,0 +1,14 @@
+{
+  "brand": "WASH-PRO",
+  "nav": {"home":"Início","tasks":"Tarefas","system":"Sistema","wifi":"Wi‑Fi","reboot":"Reiniciar"},
+  "info": {"title":"Informação","serial":"Serial","licenseActive":"Licença ativa","freeHeap":"Heap livre","heapSize":"Tamanho do heap","userScripts":"Scripts do usuário","runningTasks":"Tarefas em execução"},
+  "tasks":{"title":"Tarefas"},
+  "system":{"title":"Sistema","sw":"SW","theme":"Tema","language":"Idioma","fw":"Firmware / Sistema de arquivos"},
+  "firmware":{"uploadButton":"Enviar firmware (OTA)"},
+  "fs":{"uploadButton":"Enviar para o sistema de arquivos"},
+  "save":{"button":"Salvar"},
+  "saveTheme":{"button":"Salvar tema"},
+  "wifi":{"title":"Rede sem fio","ssidPlaceholder":"SSID","passPlaceholder":"Senha","saveButton":"Salvar e conectar","connected":"Conectado","failed":"Falha ao conectar"},
+  "reboot":{"title":"Reiniciar","typeLabel":"Tipo:","typeSoft":"Suave","typeHard":"Forçado","delayLabel":"Atraso (seg):","button":"Reiniciar"},
+  "alerts":{"selectFile":"Selecione um arquivo","saved":"Salvo","themeSaved":"Tema salvo","uploadStarted":"Envio iniciado. O dispositivo reiniciará após a atualização.","fileUploaded":"Arquivo enviado"}
+}

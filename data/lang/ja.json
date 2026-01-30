@@ -1,0 +1,14 @@
+{
+  "brand": "WASH-PRO",
+  "nav": {"home":"ホーム","tasks":"タスク","system":"システム","wifi":"Wi‑Fi","reboot":"再起動"},
+  "info": {"title":"情報","serial":"シリアル","licenseActive":"ライセンス有効","freeHeap":"空きヒープ","heapSize":"ヒープサイズ","userScripts":"ユーザースクリプト","runningTasks":"実行中のタスク"},
+  "tasks":{"title":"タスク"},
+  "system":{"title":"システム","sw":"ソフトウェア","theme":"テーマ","language":"言語","fw":"ファームウェア / ファイルシステム"},
+  "firmware":{"uploadButton":"ファームウェアをアップロード (OTA)"},
+  "fs":{"uploadButton":"ファイルシステムにアップロード"},
+  "save":{"button":"保存"},
+  "saveTheme":{"button":"テーマを保存"},
+  "wifi":{"title":"無線ネットワーク","ssidPlaceholder":"SSID","passPlaceholder":"パスワード","saveButton":"保存して接続","connected":"接続済み","failed":"接続に失敗しました"},
+  "reboot":{"title":"再起動","typeLabel":"種類:","typeSoft":"ソフト","typeHard":"ハード","delayLabel":"遅延 (秒):","button":"再起動"},
+  "alerts":{"selectFile":"ファイルを選択","saved":"保存しました","themeSaved":"テーマが保存されました","uploadStarted":"アップロードを開始しました。更新後にデバイスが再起動します。","fileUploaded":"ファイルがアップロードされました"}
+}

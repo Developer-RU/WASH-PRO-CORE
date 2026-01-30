@@ -1,0 +1,14 @@
+{
+  "brand": "WASH-PRO",
+  "nav": {"home":"Forside","tasks":"Opgaver","system":"System","wifi":"Wi‑Fi","reboot":"Genstart"},
+  "info": {"title":"Information","serial":"Serienummer","licenseActive":"Licens aktiv","freeHeap":"Ledig heap","heapSize":"Heap størrelse","userScripts":"Bruger scripts","runningTasks":"Kørende opgaver"},
+  "tasks":{"title":"Opgaver"},
+  "system":{"title":"System","sw":"SW","theme":"Tema","language":"Sprog","fw":"Firmware / Filsystem"},
+  "firmware":{"uploadButton":"Upload firmware (OTA)"},
+  "fs":{"uploadButton":"Upload til filsystem"},
+  "save":{"button":"Gem"},
+  "saveTheme":{"button":"Gem tema"},
+  "wifi":{"title":"Trådløst netværk","ssidPlaceholder":"SSID","passPlaceholder":"Adgangskode","saveButton":"Gem og forbind","connected":"Forbundet","failed":"Forbindelse mislykkedes"},
+  "reboot":{"title":"Genstart","typeLabel":"Type:","typeSoft":"Blød","typeHard":"Hård","delayLabel":"Forsinkelse (sek):","button":"Genstart"},
+  "alerts":{"selectFile":"Vælg fil","saved":"Gemt","themeSaved":"Tema gemt","uploadStarted":"Upload startet. Enheden genstarter efter opdatering.","fileUploaded":"Fil uploadet"}
+}
