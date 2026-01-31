@@ -49,8 +49,8 @@ public:
   /**
    * @brief Saves a script for a task and/or updates its name.
    * @param id The ID of the task.
-   * @param name The new name for the task (can be empty if not changing).
-   * @param content The Lua script content (can be empty if only renaming).
+   * @param name The new name for the task. Can be empty if not changing the name.
+   * @param content The Lua script content. Can be empty if only renaming the task.
    * @return True on success, false on failure.
    */
   bool saveScript(const String &id, const String &name, const String &content);

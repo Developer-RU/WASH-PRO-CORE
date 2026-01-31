@@ -57,6 +57,11 @@ public:
   String getLanguage();
 
   /**
+   * @brief Gets the current system language.
+   * @return The current language code.
+   */
+  String getLanguage();
+  /**
    * @brief Sets the system theme.
    * @param theme The name of the theme to set.
    */

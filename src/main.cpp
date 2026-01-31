@@ -22,7 +22,6 @@ SystemManager sys; ///< Global instance of the SystemManager.
 TaskManager tasks; ///< Global instance of the TaskManager.
 WebUI ui;          ///< Global instance of the WebUI manager.
 AsyncWebServer server(80); ///< Global instance of the asynchronous web server.
-static std::map<uint32_t, String> requestBodies; ///< A map to buffer request bodies, used for older POST handling.
 
 /**
  * @brief Setup function, runs once on startup.
