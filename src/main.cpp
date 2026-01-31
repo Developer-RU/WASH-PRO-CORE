@@ -14,30 +14,6 @@ WebUI ui;
 AsyncWebServer server(80);
 static std::map<uint32_t, String> requestBodies;
 
-void notFound(AsyncWebServerRequest *request) {
-  // For API endpoints, return 404; for all other client routes, serve index.html (SPA fallback)
-  String url = request->url();
-  if (url.startsWith("/api/")) {
-    // log unexpected API requests for debugging
-    Serial.printf("notFound for API path: %s method=%d contentLen=%u\n", url.c_str(), request->method(), request->contentLength());
-    if (LittleFS.exists("/404.html")) {
-      request->send(LittleFS, "/404.html", "text/html");
-    } else {
-      request->send(404, "text/plain", "Not found");
-    }
-    return;
-  }
-
-  // Serve SPA entry point for client routes
-  if (LittleFS.exists("/index.html")) {
-    request->send(LittleFS, "/index.html", "text/html");
-  } else if (LittleFS.exists("/404.html")) {
-    request->send(LittleFS, "/404.html", "text/html");
-  } else {
-    request->send(404, "text/plain", "Not found");
-  }
-}
-
 void setup() {
   Serial.begin(115200);
   delay(1000);

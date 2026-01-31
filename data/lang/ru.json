@@ -3,7 +3,7 @@
   "nav": {"home":"Главная","tasks":"Задачи","system":"Система","wifi":"Сеть","files":"Файлы","update":"Обновление","reboot":"Перезагрузка"},
   "info": {"title":"Информация","serial":"Серийник","licenseActive":"Лицензия активна","freeHeap":"Свободная память","heapSize":"Размер кучи","createdTasks":"Создано задач","runningTasks":"Запущенные задачи"},
   "tasks":{"title":"Задачи","createPrompt":"Имя задачи","renamePrompt":"Переименовать задачу","editScript":"Редактировать скрипт","attachScript":"Прикрепить скрипт","delete":"Удалить","deleteConfirm":"Удалить задачу?","scriptFor":"Скрипт для","run":"Запустить","runStarted":"Запуск отправлен","closeEditor":"Закрыть"},
-  "system":{"title":"Система","sw":"ПО","theme":"Тема","language":"Язык","fw":"Прошивка / Файловая система"},
+  "system":{"title":"Система","sw":"ПО","theme":"Оформление","language":"Язык","fw":"Прошивка / Файловая система"},
   "firmware":{"uploadButton":"Загрузить прошивку (OTA)"},
   "fs":{"uploadButton":"Загрузить в файловую систему"},
   "files":{"title":"Файловый менеджер","name":"Имя","size":"Размер","actions":"Действия","delete":"Удалить","download":"Скачать","view":"Просмотр","deleteConfirm":"Удалить файл","noFiles":"Файлов не найдено."},

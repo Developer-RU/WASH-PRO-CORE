@@ -90,22 +90,23 @@ void SystemManager::handleOTAUpload(AsyncWebServerRequest *request, String filen
 }
 
 void SystemManager::handleFSUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
+  String path = "/";
+  if (request->hasParam("path")) {
+    path = request->getParam("path")->value();
+  }
+  if (!path.endsWith("/")) {
+    path += "/";
+  }
+
   if (index == 0) {
-    String path = "/";
-    if (request->hasParam("path")) {
-      path = request->getParam("path")->value();
-    }
-    if (!path.endsWith("/")) {
-      path += "/";
-    }
     Serial.printf("FS Upload Start: %s to %s\n", filename.c_str(), path.c_str());
   }
-  String path = request->getParam("path")->value() + "/" + filename;
+  String fullPath = path + filename;
   File f;
   if (index == 0) {
-    f = LittleFS.open(path, FILE_WRITE);
+    f = LittleFS.open(fullPath, FILE_WRITE);
   } else {
-    f = LittleFS.open(path, FILE_APPEND);
+    f = LittleFS.open(fullPath, FILE_APPEND);
   }
   if (!f) {
     Serial.println("Failed to open file for writing");

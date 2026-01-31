@@ -65,7 +65,6 @@ header {
   margin-bottom: 1em;
   background-color: var(--sidebar-bg-color);
   padding: 0.5em;
-  border-radius: 8px;
   margin-top: -1em; /* Adjust for content padding */
   margin-left: -1em; margin-right: -1em;
 }
@@ -156,7 +155,7 @@ header h1 {
 }
 #tasksList, #fileList {
   display: grid;
-  gap: 1em;
+  gap: 0.8em;
 }
 .task-info > div:first-child {
   font-weight: bold;
@@ -168,6 +167,30 @@ header h1 {
 .task-actions {
   display: flex;
   gap: 0.5em;
+}
+
+/* Info Table on Home Page */
+#info table {
+  width: 100%;
+  box-sizing: border-box;
+  border-collapse: collapse;
+  margin-top: 1em;
+  margin-bottom: 1em;
+  background-color: var(--card-bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden; /* To make border-radius work on table */
+}
+#info table td {
+  padding: 0.8em 1.2em;
+  border-bottom: 1px solid var(--border-color);
+}
+#info table tr:last-child td {
+  border-bottom: none;
+}
+#info table tr td:first-child {
+  font-weight: bold;
+  border-right: 1px solid var(--border-color);
 }
 
 /* Unified Form Elements */

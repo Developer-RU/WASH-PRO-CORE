@@ -115,10 +115,12 @@ document.addEventListener('DOMContentLoaded', ()=>{
     document.getElementById('filesTitle').textContent = t.files?.title || 'File Manager';
     document.getElementById('updateTitle').textContent = t.update?.title || 'Update';
     document.getElementById('wifiTitle').textContent = t.wifi?.title || 'Wireless network';
+    document.getElementById('langTitle').textContent = t.system?.language || 'Language';
     document.getElementById('rebootTitle').textContent = t.reboot?.title || 'Reboot';
-    document.getElementById('themeTitle').textContent = t.saveTheme?.title || 'Appearance';
+    document.getElementById('themeTitle').textContent = t.system?.theme || 'Appearance';
 
     document.getElementById('createTaskBtn').querySelector('.btn-text').textContent = t.tasks?.create || 'Create task';
+    document.getElementById('createTaskBtn').title = t.tasks?.create || 'Create task';
     document.getElementById('uploadFirmwareBtn').querySelector('.btn-text').textContent = t.firmware?.uploadButton || 'Upload firmware (OTA)';
     document.getElementById('uploadFSBtn').querySelector('.btn-text').textContent = t.fs?.uploadButton || 'Upload to filesystem';
     document.getElementById('saveLang').querySelector('.btn-text').textContent = t.save?.button || 'Save';
@@ -129,7 +131,11 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
     document.getElementById('closeEditor').textContent = t.tasks?.closeEditor || 'Close';
     const ssid = document.querySelector('#wifiForm input[name="ssid"]'); if (ssid) ssid.placeholder = t.wifi?.ssidPlaceholder || 'SSID';
+    const ssidLabel = document.querySelector('#wifiForm label[for="ssidInput"]'); if (ssidLabel) ssidLabel.textContent = t.wifi?.ssidPlaceholder || 'SSID';
     const pass = document.querySelector('#wifiForm input[name="pass"]'); if (pass) pass.placeholder = t.wifi?.passPlaceholder || 'Password';
+    const passLabel = document.querySelector('#wifiForm label[for="passInput"]'); if (passLabel) passLabel.textContent = t.wifi?.passPlaceholder || 'Password';
+    const firmwareLabel = document.querySelector('#uploadFirmware label[for="firmwareFile"]'); if (firmwareLabel) firmwareLabel.textContent = t.firmware?.uploadButton || 'Firmware file';
+    const fsLabel = document.querySelector('#uploadFS label[for="fsFile"]'); if (fsLabel) fsLabel.textContent = t.fs?.uploadButton || 'Filesystem file';
 
     const rtype = document.getElementById('rebootTypeLabel'); if (rtype) rtype.textContent = t.reboot?.typeLabel || 'Type:';
     const rdelay = document.getElementById('rebootDelayLabel'); if (rdelay) rdelay.textContent = t.reboot?.delayLabel || 'Delay (sec):';
@@ -247,7 +253,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
         // Rename Button
         const renameBtn = document.createElement('button');
-        renameBtn.className = 'task-action-btn';
+        renameBtn.className = 'task-action-btn'; // This should be file-action-btn or similar to avoid mobile icon logic
         renameBtn.title = 'Rename';
         renameBtn.innerHTML = '<i class="fas fa-pencil"></i>';
         renameBtn.onclick = async () => {
@@ -263,7 +269,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
         const ext = file.name.split('.').pop().toLowerCase();
         if (!file.isDir && TEXT_EXTENSIONS.includes(ext)) {
           const editBtn = document.createElement('button');
-          editBtn.className = 'task-action-btn';
+          editBtn.className = 'task-action-btn'; // This should be file-action-btn or similar to avoid mobile icon logic
           editBtn.title = 'Edit';
           editBtn.innerHTML = '<i class="fas fa-file-alt"></i>';
           editBtn.onclick = () => openFileEditor(fullPath);
@@ -272,7 +278,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
         // Delete Button
         const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'task-action-btn';
+        deleteBtn.className = 'task-action-btn'; // This should be file-action-btn or similar to avoid mobile icon logic
         deleteBtn.title = TRANSLATIONS.files?.delete || 'Delete';
         deleteBtn.innerHTML = '<i class="fas fa-trash-can"></i>';
         deleteBtn.onclick = async () => {
