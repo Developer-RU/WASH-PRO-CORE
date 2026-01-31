@@ -4,8 +4,8 @@
 # WASH-PRO-CORE
 
 <p>
-  <img src="version.svg" alt="Version 1.0.0">
-  <img src="license.svg" alt="License MIT">
+  <img src="/images/version.svg" alt="Version 1.0.0">
+  <img src="/images/license.svg" alt="License MIT">
 </p>
 
 ## Project Overview
