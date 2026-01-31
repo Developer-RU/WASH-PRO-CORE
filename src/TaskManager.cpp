@@ -1,9 +1,19 @@
+/**
+ * @file TaskManager.cpp
+ * @author Masyukov Pavel
+ * @brief Implementation of the TaskManager class for the WASH-PRO project.
+ * @version 1.0.0
+ * @see https://github.com/pavelmasyukov/WASH-PRO-CORE
+ */
 #include "TaskManager.h"
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
 #include <LittleFS.h>
 
+/**
+ * @brief Initializes the TaskManager.
+ */
 void TaskManager::begin() {
   // ensure directories
   if (!LittleFS.exists("/tasks")) {
@@ -14,6 +24,9 @@ void TaskManager::begin() {
   }
 }
 
+/**
+ * @brief Creates a new task with a given name.
+ */
 String TaskManager::createTask(const String &name) {
   String id = String((uint32_t)millis());
   DynamicJsonDocument doc(512);
@@ -29,6 +42,9 @@ String TaskManager::createTask(const String &name) {
   return id;
 }
 
+/**
+ * @brief Saves a script for a task and/or updates its name.
+ */
 bool TaskManager::saveScript(const String &id, const String &name, const String &content) {
   bool ok = true;
 
@@ -78,6 +94,9 @@ bool TaskManager::saveScript(const String &id, const String &name, const String 
   return ok;
 }
 
+/**
+ * @brief Runs a specific task.
+ */
 bool TaskManager::runTask(const String &id) {
   String tpath = String("/tasks/") + id + ".json";
   if (!LittleFS.exists(tpath)) {
@@ -102,6 +121,9 @@ bool TaskManager::runTask(const String &id) {
   return true;
 }
 
+/**
+ * @brief Retrieves the script content for a given task.
+ */
 String TaskManager::getScript(const String &id) {
   String path = String("/scripts/") + id + ".lua";
   if (!LittleFS.exists(path)) return "";
@@ -110,6 +132,9 @@ String TaskManager::getScript(const String &id) {
   String s = f.readString(); f.close(); return s;
 }
 
+/**
+ * @brief Deletes a task and its associated script.
+ */
 bool TaskManager::deleteTask(const String &id) {
   String tpath = String("/tasks/") + id + ".json";
   String spath = String("/scripts/") + id + ".lua";
@@ -138,6 +163,9 @@ bool TaskManager::deleteTask(const String &id) {
   return !finalTaskExists && !finalScriptExists; // Return true only if both are truly gone
 }
 
+/**
+ * @brief Gets the JSON metadata for a single task.
+ */
 String TaskManager::getTaskJSON(const String &id) {
   String tpath = String("/tasks/") + id + ".json";
   if (!LittleFS.exists(tpath)) return "";
@@ -146,6 +174,9 @@ String TaskManager::getTaskJSON(const String &id) {
   String s = tf.readString(); tf.close(); return s;
 }
 
+/**
+ * @brief Gets a JSON string representing all tasks.
+ */
 String TaskManager::getTasksJSON() {
   DynamicJsonDocument doc(2048);
   UBaseType_t taskCount = uxTaskGetNumberOfTasks();
@@ -160,6 +191,7 @@ String TaskManager::getTasksJSON() {
         DeserializationError error = deserializeJson(tdoc, file);
         if (error) {
           Serial.printf("Failed to parse task JSON from stream: %s\n", file.name());
+          file.close(); // Close file on error
         } else {
         JsonObject obj = arr.createNestedObject();
         obj["id"] = String((const char*)tdoc["id"]);

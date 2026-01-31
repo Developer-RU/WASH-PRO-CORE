@@ -1,3 +1,13 @@
+/**
+ * @file main.cpp
+ * @author Masyukov Pavel
+ * @brief Main application file for the WASH-PRO project.
+ * @version 1.0.0
+ * @see https://github.com/pavelmasyukov/WASH-PRO-CORE
+ *
+ * This file contains the main setup and loop functions for the ESP32 application.
+ * It initializes the system, tasks, Wi-Fi, and the web server with all its API endpoints.
+ */
 #include <Arduino.h>
 #include <WiFi.h>
 #include <LittleFS.h>
@@ -8,12 +18,18 @@
 #include "TaskManager.h"
 #include "WebUI.h"
 
-SystemManager sys;
-TaskManager tasks;
-WebUI ui;
-AsyncWebServer server(80);
-static std::map<uint32_t, String> requestBodies;
+SystemManager sys; ///< Global instance of the SystemManager.
+TaskManager tasks; ///< Global instance of the TaskManager.
+WebUI ui;          ///< Global instance of the WebUI manager.
+AsyncWebServer server(80); ///< Global instance of the asynchronous web server.
+static std::map<uint32_t, String> requestBodies; ///< A map to buffer request bodies, used for older POST handling.
 
+/**
+ * @brief Setup function, runs once on startup.
+ *
+ * Initializes Serial communication, LittleFS, SystemManager, TaskManager,
+ * Wi-Fi in AP mode, and sets up all the web server routes.
+ */
 void setup() {
   Serial.begin(115200);
   delay(1000);
@@ -42,15 +58,17 @@ void setup() {
   // Web UI
   ui.begin(&server);
 
+  // API endpoint to get general system information.
   server.on("/api/info", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(200, "application/json", sys.getInfoJSON());
   });
 
+  // API endpoint to get the list of all tasks.
   server.on("/api/tasks", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(200, "application/json", tasks.getTasksJSON());
   });
 
-  // Unified handler for creating, renaming, and saving scripts for tasks
+  // API endpoint to handle creating, renaming, and saving scripts for tasks.
   server.on("/api/tasks", HTTP_POST, [](AsyncWebServerRequest *request){
     String id = request->hasParam("id", true) ? request->getParam("id", true)->value() : "";
     String name = request->hasParam("name", true) ? request->getParam("name", true)->value() : "";
@@ -86,7 +104,7 @@ void setup() {
     }
   });
 
-  // Get script content (query param: id)
+  // API endpoint to get the script content for a specific task.
   server.on("/api/tasks/script", HTTP_GET, [](AsyncWebServerRequest *request){
     if (request->hasParam("id")) {
       String id = request->getParam("id")->value();
@@ -97,7 +115,7 @@ void setup() {
     }
   });
 
-  // Delete task
+  // API endpoint to delete a task.
   server.on("/api/tasks/delete", HTTP_POST, [](AsyncWebServerRequest *request){
     if (request->hasParam("id", true)) {
       String id = request->getParam("id", true)->value();
@@ -108,7 +126,7 @@ void setup() {
     }
   });
 
-  // Run a task's script (non-blocking request, execution not implemented yet)
+  // API endpoint to run a task's script.
   server.on("/api/tasks/run", HTTP_POST, [](AsyncWebServerRequest *request){
     if (request->hasParam("id", true)) {
       String id = request->getParam("id", true)->value();
@@ -119,12 +137,16 @@ void setup() {
     }
   });
 
-  // Built-in functions list for editor hints
+  // API endpoint to provide a list of built-in Lua functions for the script editor.
   server.on("/api/builtins", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(200, "application/json", "[\"log\",\"setLED\",\"delay\",\"startTask\",\"stopTask\"]");
   });
 
-  // Helper function to recursively delete a directory
+  /**
+   * @brief A lambda function to recursively delete a directory and its contents.
+   * @param path The path of the directory to delete.
+   * @note This is captured by the /api/files/delete endpoint.
+   */
   std::function<void(String)> deleteRecursive = 
     [&](String path) {
       File root = LittleFS.open(path);
@@ -145,6 +167,7 @@ void setup() {
       LittleFS.rmdir(path);
   };
 
+  // API endpoint to list files in a directory.
   server.on("/api/files", HTTP_GET, [](AsyncWebServerRequest *request){
     String path = "/";
     if (request->hasParam("path")) {
@@ -174,6 +197,7 @@ void setup() {
     request->send(200, "application/json", out);
   });
 
+  // API endpoint to delete a file or directory.
   server.on("/api/files/delete", HTTP_POST, [deleteRecursive](AsyncWebServerRequest *request){
     if (request->hasParam("path", true)) {
       String path = request->getParam("path", true)->value();
@@ -190,6 +214,7 @@ void setup() {
     }
   });
 
+  // API endpoint to rename a file.
   server.on("/api/files/rename", HTTP_POST, [](AsyncWebServerRequest *request){
     if (request->hasParam("path", true) && request->hasParam("newName", true)) {
       String path = request->getParam("path", true)->value();
@@ -206,6 +231,7 @@ void setup() {
     }
   });
 
+  // API endpoint to save content to a file.
   server.on("/api/files/save", HTTP_POST, [](AsyncWebServerRequest *request){
     if (request->hasParam("path", true) && request->hasParam("content", true)) {
       String path = request->getParam("path", true)->value();
@@ -222,10 +248,12 @@ void setup() {
     }
   });
 
+  // API endpoint to get system settings.
   server.on("/api/system", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(200, "application/json", sys.getSystemJSON());
   });
 
+  // API endpoint to set the system language.
   server.on("/api/setlanguage", HTTP_POST, [](AsyncWebServerRequest *request){
     if (request->hasParam("lang", true)) {
       String lang = request->getParam("lang", true)->value();
@@ -237,6 +265,7 @@ void setup() {
     }
   });
 
+  // API endpoint to set the license key.
   server.on("/api/setlicense", HTTP_POST, [](AsyncWebServerRequest *request){
     if (request->hasParam("key", true)) {
       String key = request->getParam("key", true)->value();
@@ -248,24 +277,12 @@ void setup() {
     }
   });
 
-  server.on("/api/autoupdate", HTTP_POST, [](AsyncWebServerRequest *request){
-    if (request->hasParam("enabled", true)) {
-      String enabledStr = request->getParam("enabled", true)->value();
-      bool enabled = (enabledStr == "true");
-      sys.setAutoUpdate(enabled);
-      request->send(200, "application/json", "{\"ok\":true}");
-    } else {
-      request->send(400, "application/json", "{\"error\":\"missing enabled param\"}");
-    }
-  });
-
-  // Theme endpoints
+  // API endpoint to get the list of available themes.
   server.on("/api/themes", HTTP_GET, [](AsyncWebServerRequest *request){
-    // List of available themes (files under /themes/*.css)
-    // Keep in sync with data/themes
     request->send(200, "application/json", "[\"gp_dark\",\"gp_light\",\"gp_gray\",\"gp_blue\",\"gp_new\",\"gp_modern\",\"gp_future\"]");
   });
 
+  // API endpoint to set the system theme.
   server.on("/api/settheme", HTTP_POST, [](AsyncWebServerRequest *request){
     if (request->hasParam("theme", true)) {
       String theme = request->getParam("theme", true)->value();
@@ -277,7 +294,19 @@ void setup() {
     }
   });
 
-  // OTA upload
+  // API endpoint to set the auto-update preference.
+  server.on("/api/autoupdate", HTTP_POST, [](AsyncWebServerRequest *request){
+    if (request->hasParam("enabled", true)) {
+      String enabledStr = request->getParam("enabled", true)->value();
+      bool enabled = (enabledStr == "true");
+      sys.setAutoUpdate(enabled);
+      request->send(200, "application/json", "{\"ok\":true}");
+    } else {
+      request->send(400, "application/json", "{\"error\":\"missing enabled param\"}");
+    }
+  });
+
+  // Global handler for all file uploads (OTA and FS).
   server.onFileUpload([](AsyncWebServerRequest *request, const String &filename, size_t index, uint8_t *data, size_t len, bool final){
     if (request->url() == "/api/upload/firmware") {
       sys.handleOTAUpload(request, filename, index, data, len, final);
@@ -286,9 +315,11 @@ void setup() {
     }
   });
 
+  // Dummy POST handlers for upload endpoints to satisfy the frontend.
   server.on("/api/upload/firmware", HTTP_POST, [](AsyncWebServerRequest *request){ request->send(200); });
   server.on("/api/upload/fs", HTTP_POST, [](AsyncWebServerRequest *request){ request->send(200); });
 
+  // API endpoint to configure and connect to a Wi-Fi network.
   server.on("/api/wifi", HTTP_POST, [](AsyncWebServerRequest *request){
     if (request->hasParam("ssid", true) && request->hasParam("pass", true)) {
       String ssid = request->getParam("ssid", true)->value();
@@ -311,6 +342,7 @@ void setup() {
     }
   });
 
+  // API endpoint to schedule a system reboot.
   server.on("/api/reboot", HTTP_POST, [](AsyncWebServerRequest *request){
     String type = "hard";
     uint32_t delaySec = 0;
@@ -324,6 +356,11 @@ void setup() {
   server.begin();
 }
 
+/**
+ * @brief Main loop function.
+ *
+ * This function is empty as all operations (web server, tasks) are handled asynchronously.
+ */
 void loop() {
   // nothing to do; server and tasks run in background
 }

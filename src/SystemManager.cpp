@@ -1,9 +1,19 @@
+/**
+ * @file SystemManager.cpp
+ * @author Masyukov Pavel
+ * @brief Implementation of the SystemManager class for the WASH-PRO project.
+ * @version 1.0.0
+ * @see https://github.com/pavelmasyukov/WASH-PRO-CORE
+ */
 #include "SystemManager.h"
 #include <Update.h>
 #include <LittleFS.h>
 #include <WiFi.h>
 #include <esp_system.h>
 
+/**
+ * @brief Initializes the SystemManager.
+ */
 void SystemManager::begin() {
   _prefs.begin("system", false);
   _language = _prefs.getString("lang", "en");
@@ -11,6 +21,9 @@ void SystemManager::begin() {
   _licenseKey = _prefs.getString("license_key", "");
 }
 
+/**
+ * @brief Gets system information as a JSON string.
+ */
 String SystemManager::getInfoJSON() {
   DynamicJsonDocument doc(1024);
   uint64_t mac = ESP.getEfuseMac();
@@ -44,6 +57,9 @@ String SystemManager::getInfoJSON() {
   return out;
 }
 
+/**
+ * @brief Gets system settings as a JSON string.
+ */
 String SystemManager::getSystemJSON() {
   DynamicJsonDocument doc(512);
   doc["swSerial"] = "v1.0.0";
@@ -56,33 +72,54 @@ String SystemManager::getSystemJSON() {
   return out;
 }
 
+/**
+ * @brief Sets the system language.
+ */
 void SystemManager::setLanguage(const String &lang) {
   _language = lang;
   _prefs.putString("lang", _language);
 }
 
+/**
+ * @brief Sets the system theme.
+ */
 void SystemManager::setTheme(const String &theme) {
   _theme = theme;
   _prefs.putString("theme", _theme);
 }
 
+/**
+ * @brief Gets the current system theme.
+ */
 String SystemManager::getTheme() {
   return _theme;
 }
 
+/**
+ * @brief Sets the license key.
+ */
 void SystemManager::setLicenseKey(const String &key) {
   _licenseKey = key;
   _prefs.putString("license_key", _licenseKey);
 }
 
+/**
+ * @brief Gets the current license key.
+ */
 String SystemManager::getLicenseKey() {
   return _licenseKey;
 }
 
+/**
+ * @brief Sets the auto-update preference.
+ */
 void SystemManager::setAutoUpdate(bool enabled) {
   _prefs.putBool("auto_update", enabled);
 }
 
+/**
+ * @brief Handles OTA firmware update uploads.
+ */
 void SystemManager::handleOTAUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
   if (index == 0) {
     Serial.printf("OTA Upload Start: %s\n", filename.c_str());
@@ -105,6 +142,9 @@ void SystemManager::handleOTAUpload(AsyncWebServerRequest *request, String filen
   }
 }
 
+/**
+ * @brief Handles file uploads to the LittleFS filesystem.
+ */
 void SystemManager::handleFSUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
   String path = "/";
   if (request->hasParam("path")) {
@@ -135,12 +175,18 @@ void SystemManager::handleFSUpload(AsyncWebServerRequest *request, String filena
   }
 }
 
+/**
+ * @brief Saves Wi-Fi credentials to persistent storage.
+ */
 bool SystemManager::saveWiFiCredentials(const String &ssid, const String &password) {
   _prefs.putString("wifi_ssid", ssid);
   _prefs.putString("wifi_pass", password);
   return true;
 }
 
+/**
+ * @brief Schedules a system reboot.
+ */
 void SystemManager::scheduleReboot(uint32_t delaySeconds, bool graceful) {
   if (delaySeconds == 0) {
     if (graceful) {
