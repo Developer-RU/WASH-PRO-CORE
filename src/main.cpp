@@ -21,6 +21,7 @@
 SystemManager sys; ///< Global instance of the SystemManager.
 TaskManager tasks; ///< Global instance of the TaskManager.
 WebUI ui;          ///< Global instance of the WebUI manager.
+
 AsyncWebServer server(80); ///< Global instance of the asynchronous web server.
 
 /**
@@ -73,7 +74,7 @@ void setup() {
     String name = request->hasParam("name", true) ? request->getParam("name", true)->value() : "";
     String script = request->hasParam("script", true) ? request->getParam("script", true)->value() : "";
 
-    // Logic: if 'script' is present, we are saving a script. Otherwise, creating/renaming.
+    // Logic: if 'script' is present, we are saving a script. Otherwise, creating/renaming
     if (request->hasParam("script", true)) { // This is a script save operation
       if (id.length() == 0) {
         request->send(400, "application/json", "{\"error\":\"missing id for script save\"}");
@@ -147,21 +148,21 @@ void setup() {
    * @note This is captured by the /api/files/delete endpoint.
    */
   std::function<void(String)> deleteRecursive = 
-    [&](String path) {
+    [&](const String& path) {
       File root = LittleFS.open(path);
       if (!root || !root.isDirectory()) {
         return;
       }
       File file = root.openNextFile();
-      while(file){
-          String entryPath = String(file.name()); // file.name() returns the full path
-          if(file.isDirectory()){
-              deleteRecursive(entryPath);
-          } else {
-              LittleFS.remove(entryPath);
-          }
-          file.close(); // Ensure file handle is closed
-          file = root.openNextFile();
+      while (file) {
+        String entryPath = file.name(); // file.name() returns the full path
+        if (file.isDirectory()) {
+          deleteRecursive(entryPath);
+        } else {
+          LittleFS.remove(entryPath);
+        }
+        file.close(); // Ensure file handle is closed
+        file = root.openNextFile();
       }
       LittleFS.rmdir(path);
   };
@@ -180,17 +181,18 @@ void setup() {
     doc["path"] = path;
     JsonArray files = doc.createNestedArray("files");
     File root = LittleFS.open(path);
-    if(root && root.isDirectory()){
-        File file = root.openNextFile();
-        while(file){
-            JsonObject fileObj = files.createNestedObject();
-            String fullPath = String(file.name());
-            fileObj["name"] = fullPath.substring(fullPath.lastIndexOf('/') + 1);
-            fileObj["size"] = file.size();
-            fileObj["isDir"] = file.isDirectory();
-            file = root.openNextFile();
-        }
-        root.close();
+    if (root && root.isDirectory()) {
+      File file = root.openNextFile();
+      while (file) {
+        JsonObject fileObj = files.createNestedObject();
+        String fullPath = String(file.name());
+        fileObj["name"] = fullPath.substring(fullPath.lastIndexOf('/') + 1);
+        fileObj["size"] = file.size();
+        fileObj["isDir"] = file.isDirectory();
+        file.close();
+        file = root.openNextFile();
+      }
+      root.close();
     }
     String out; serializeJson(doc, out);
     request->send(200, "application/json", out);
@@ -325,10 +327,10 @@ void setup() {
       String pass = request->getParam("pass", true)->value();
       sys.saveWiFiCredentials(ssid, pass);
       // try connect
-      WiFi.begin(ssid.c_str(), pass.c_str());
+      WiFi.begin(ssid.c_str(), pass.c_str()); 
       uint8_t tries = 0;
       while (WiFi.status() != WL_CONNECTED && tries < 30) {
-        delay(200);
+        delay(200); 
         tries++;
       }
       if (WiFi.status() == WL_CONNECTED) {

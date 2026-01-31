@@ -27,9 +27,9 @@ void SystemManager::begin() {
 String SystemManager::getInfoJSON() {
   DynamicJsonDocument doc(1024);
   uint64_t mac = ESP.getEfuseMac();
-  char macStr[32];
-  sprintf(macStr, "%012llX", mac);
-  doc["serial"] = String(macStr);
+  char macStr[13];
+  snprintf(macStr, sizeof(macStr), "%012llX", mac);
+  doc["serial"] = macStr;
   doc["licenseActive"] = _prefs.getBool("license", true);
   doc["freeHeap"] = ESP.getFreeHeap();
   doc["heapSize"] = ESP.getHeapSize();
@@ -43,7 +43,9 @@ String SystemManager::getInfoJSON() {
         if (!file) { // No more files
           break;
         }
-        if (!file.isDirectory()) scriptCount++;
+        if (!file.isDirectory()) {
+          scriptCount++;
+        }
         file.close(); // Explicitly close the file handle
       }
       root.close();
