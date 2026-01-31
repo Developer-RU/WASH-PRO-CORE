@@ -1,3 +1,6 @@
+[![WASH-PRO-CORE Logo](/images/ac03e482-bcb9-418c-bc13-04147fc17f88-pic4.png)]([https://koseven.dev/](https://github.com/Developer-RU/SMART-WASH))
+
+
 # WASH-PRO-CORE
 
 <p>
