@@ -8,86 +8,86 @@
   <img src="license.svg" alt="License MIT">
 </p>
 
-## Обзор проекта
+## Project Overview
 
-**WASH-PRO-CORE** — это встраиваемая система на базе ESP32 с многофункциональным веб-интерфейсом для управления задачами, файлами и системными настройками. Проект разработан с акцентом на гибкость, удобство использования и расширяемость.
+**WASH-PRO-CORE** is an embedded system based on ESP32 with a multifunctional web interface for managing tasks, files, and system settings. The project is designed with a focus on flexibility, ease of use, and extensibility.
 
-### Ключевые возможности
+### Key Features
 
-- **Точка доступа по умолчанию:** Устройство запускается в режиме точки доступа (AP) с SSID `WASH-PRO-CORE-xxxx` для первоначальной настройки.
+- **Default Access Point:** The device starts in Access Point (AP) mode with the SSID `WASH-PRO-CORE-xxxx` for initial setup.
 
-### Веб-интерфейс
+### Web Interface
 
-Современный адаптивный UI с боковым меню, который корректно отображается на десктопных и мобильных устройствах.
+A modern, responsive UI with a sidebar menu that displays correctly on both desktop and mobile devices.
 
-*   **Разделы меню:**
-    *   **Главная:** Отображение основной системной информации.
-    *   **Задачи:** Управление задачами и их скриптами.
-    *   **Система:** Настройки языка, темы оформления и лицензионного ключа.
-    *   **Сеть:** Настройка подключения к Wi-Fi.
-    *   **Файлы:** Встроенный файловый менеджер.
-    *   **Обновление:** Обновление прошивки и файловой системы.
-    *   **Перезагрузка:** Управление перезагрузкой устройства.
+*   **Menu Sections:**
+    *   **Home:** Displays main system information.
+    *   **Tasks:** Manage tasks and their scripts.
+    *   **System:** Settings for language, theme, and license key.
+    *   **Network:** Wi-Fi connection setup.
+    *   **Files:** Built-in file manager.
+    *   **Update:** Firmware and filesystem updates.
+    *   **Reboot:** Device reboot management.
 
-*   **Многоязычная поддержка:** Интерфейс переведен на **16 языков**, включая русский, английский, немецкий и другие, с возможностью переключения "на лету".
+*   **Multilingual Support:** The interface is translated into **16 languages**, including Russian, English, German, and others, with on-the-fly switching.
 
-*   **Темы оформления:** Поддержка **7 различных цветовых тем** для персонализации внешнего вида.
+*   **Themes:** Support for **7 different color themes** to personalize the look and feel.
 
-### Функциональность
+### Functionality
 
-*   **Управление задачами:** Создание, переименование и удаление задач. Для каждой задачи можно написать и сохранить **Lua-скрипт** с помощью встроенного редактора, который подсвечивает доступные функции.
+*   **Task Management:** Create, rename, and delete tasks. For each task, you can write and save a **Lua script** using the built-in editor, which highlights available functions.
 
-*   **Файловый менеджер:** Полноценный менеджер для работы с файловой системой LittleFS. Позволяет просматривать структуру папок, переименовывать, удалять и редактировать текстовые файлы прямо в браузере.
+*   **File Manager:** A full-featured manager for working with the LittleFS filesystem. It allows you to browse the folder structure, rename, delete, and edit text files directly in the browser.
 
-*   **Системные настройки:**
-    *   **Лицензионный ключ:** Предусмотрено поле для ввода и сохранения лицензионного ключа. Система также отображает текущий статус активности лицензии.
-    *   **Обновление:** Страница для безопасного OTA (Over-the-Air) обновления прошивки и загрузки файлов в файловую систему. Доступна опция включения автоматического обновления.
-    *   **Перезагрузка:** Возможность выполнить "мягкую" (программную) или "жёсткую" (аппаратную) перезагрузку с настраиваемой задержкой.
+*   **System Settings:**
+    *   **License Key:** A field is provided for entering and saving a license key. The system also displays the current license activity status.
+    *   **Update:** A page for secure OTA (Over-the-Air) firmware updates and uploading files to the filesystem. An option for enabling automatic updates is available.
+    *   **Reboot:** The ability to perform a "soft" (software) or "hard" (hardware) reboot with a configurable delay.
 
-### API Эндпоинты
+### API Endpoints
 
-#### Система
-- `GET /api/info` — информация о контроллере (серийный номер, память, лицензия).
-- `GET /api/system` — системные настройки (версия ПО, язык, тема).
-- `POST /api/setlanguage` — установить язык (параметр: `lang`).
-- `POST /api/settheme` — установить тему оформления (параметр: `theme`).
-- `POST /api/setlicense` — установить лицензионный ключ (параметр: `key`).
-- `POST /api/autoupdate` — включить/выключить автообновление (параметр: `enabled`).
-- `POST /api/reboot` — перезагрузка устройства (параметры: `type={soft,hard}`, `delay=sec`).
+#### System
+- `GET /api/info` — Controller information (serial number, memory, license).
+- `GET /api/system` — System settings (software version, language, theme).
+- `POST /api/setlanguage` — Set language (parameter: `lang`).
+- `POST /api/settheme` — Set theme (parameter: `theme`).
+- `POST /api/setlicense` — Set license key (parameter: `key`).
+- `POST /api/autoupdate` — Enable/disable auto-update (parameter: `enabled`).
+- `POST /api/reboot` — Reboot the device (parameters: `type={soft,hard}`, `delay=sec`).
 
-#### Задачи
-- `GET /api/tasks` — получить список всех задач.
-- `POST /api/tasks` — создать, переименовать задачу или сохранить для нее скрипт (параметры: `id`, `name`, `script`).
-- `GET /api/tasks/script` — получить скрипт для задачи (параметр: `id`).
-- `POST /api/tasks/delete` — удалить задачу (параметр: `id`).
-- `POST /api/tasks/run` — запустить задачу (параметр: `id`).
-- `GET /api/builtins` — получить список встроенных функций для редактора.
+#### Tasks
+- `GET /api/tasks` — Get a list of all tasks.
+- `POST /api/tasks` — Create, rename a task, or save a script for it (parameters: `id`, `name`, `script`).
+- `GET /api/tasks/script` — Get the script for a task (parameter: `id`).
+- `POST /api/tasks/delete` — Delete a task (parameter: `id`).
+- `POST /api/tasks/run` — Run a task (parameter: `id`).
+- `GET /api/builtins` — Get a list of built-in functions for the editor.
 
-#### Файлы
-- `GET /api/files` — получить список файлов и папок по пути (параметр: `path`).
-- `POST /api/files/delete` — удалить файл или папку (параметр: `path`).
-- `POST /api/files/rename` — переименовать файл (параметры: `path`, `newName`).
-- `POST /api/files/save` — сохранить содержимое в файл (параметры: `path`, `content`).
+#### Files
+- `GET /api/files` — Get a list of files and folders by path (parameter: `path`).
+- `POST /api/files/delete` — Delete a file or folder (parameter: `path`).
+- `POST /api/files/rename` — Rename a file (parameters: `path`, `newName`).
+- `POST /api/files/save` — Save content to a file (parameters: `path`, `content`).
 
-#### Сеть и Обновления
-- `POST /api/wifi` — сохранить учетные данные Wi-Fi и подключиться (параметры: `ssid`, `pass`).
-- `POST /api/upload/firmware` — загрузить прошивку (OTA).
-- `POST /api/upload/fs` — загрузить файл в файловую систему.
+#### Network & Updates
+- `POST /api/wifi` — Save Wi-Fi credentials and connect (parameters: `ssid`, `pass`).
+- `POST /api/upload/firmware` — Upload firmware (OTA).
+- `POST /api/upload/fs` — Upload a file to the filesystem.
 
-### Сборка и Загрузка
+### Build and Upload
 
-*   **Сборка проекта:**
+*   **Build the project:**
     ```sh
     pio run
     ```
-*   **Загрузка веб-ресурсов (папка `data`):**
+*   **Upload web resources (the `data` folder):**
     ```sh
     pio run --target uploadfs
     ```
 
-### Лицензия
+### License
 
-Этот проект лицензирован на условиях лицензии MIT.
+This project is licensed under the MIT License.
 
 ```
 MIT License
