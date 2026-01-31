@@ -1,4 +1,4 @@
-[![WASH-PRO-CORE Logo](/logo.png)]([https://wash-pro.tech.dev/](https://github.com/Developer-RU/WASH-PRO-CORE))
+[![WASH-PRO-CORE Logo](/images/logo.png)]([https://wash-pro.tech.dev/](https://github.com/Developer-RU/WASH-PRO-CORE))
 
 
 # WASH-PRO-CORE
