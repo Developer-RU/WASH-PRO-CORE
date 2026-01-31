@@ -116,9 +116,12 @@ document.addEventListener('DOMContentLoaded', ()=>{
     document.getElementById('updateTitle').textContent = t.update?.title || 'Update';
     document.getElementById('wifiTitle').textContent = t.wifi?.title || 'Wireless network';
     document.getElementById('langTitle').textContent = t.system?.language || 'Language';
+    document.getElementById('licenseTitle').textContent = t.system?.licenseKey || 'License Key';
     document.getElementById('rebootTitle').textContent = t.reboot?.title || 'Reboot';
     document.getElementById('themeTitle').textContent = t.system?.theme || 'Appearance';
 
+    document.getElementById('licenseKey').placeholder = t.system?.licensePlaceholder || 'Enter license key...';
+    document.getElementById('saveLicenseBtn').querySelector('.btn-text').textContent = t.system?.saveLicenseButton || 'Save Key';
     document.getElementById('createTaskBtn').querySelector('.btn-text').textContent = t.tasks?.create || 'Create task';
     document.getElementById('createTaskBtn').title = t.tasks?.create || 'Create task';
     document.getElementById('uploadFirmwareBtn').querySelector('.btn-text').textContent = t.firmware?.uploadButton || 'Upload firmware (OTA)';
@@ -183,6 +186,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
       const theme = j.theme || 'gp_light';
       document.getElementById('language').value = lang;
       const themeLink = document.getElementById('theme'); if (themeLink) themeLink.href = `/themes/${theme}.css`;
+      document.getElementById('licenseKey').value = j.licenseKey || '';
       const sel = document.getElementById('themeSelect'); if (sel) sel.value = theme;
 
       await loadTranslations(lang);
@@ -430,6 +434,13 @@ document.addEventListener('DOMContentLoaded', ()=>{
     const lang = document.getElementById('language').value;
     const r = await fetch('/api/setlanguage', { method:'POST', body: new URLSearchParams({lang}) });
     if (r.ok){ await loadTranslations(lang); alert(TRANSLATIONS.alerts?.saved || 'Saved'); }
+  });
+
+  // license save
+  document.getElementById('saveLicenseBtn')?.addEventListener('click', async ()=>{
+    const key = document.getElementById('licenseKey').value;
+    const r = await fetch('/api/setlicense', { method:'POST', body: new URLSearchParams({key}) });
+    if (r.ok) alert(TRANSLATIONS.alerts?.saved || 'Saved');
   });
 
   // theme save

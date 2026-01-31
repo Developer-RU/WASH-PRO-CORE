@@ -16,6 +16,8 @@ public:
   String getLanguage();
   void setTheme(const String &theme);
   String getTheme();
+  void setLicenseKey(const String &key);
+  String getLicenseKey();
   void handleOTAUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
   void handleFSUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
   bool saveWiFiCredentials(const String &ssid, const String &password);
@@ -24,4 +26,5 @@ private:
   Preferences _prefs;
   String _language = "en";
   String _theme = "gp_light";
+  String _licenseKey = "";
 };

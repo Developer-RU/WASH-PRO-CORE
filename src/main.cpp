@@ -237,6 +237,17 @@ void setup() {
     }
   });
 
+  server.on("/api/setlicense", HTTP_POST, [](AsyncWebServerRequest *request){
+    if (request->hasParam("key", true)) {
+      String key = request->getParam("key", true)->value();
+      sys.setLicenseKey(key);
+      Serial.printf("License key set via API.\n");
+      request->send(200, "application/json", "{\"ok\":true}");
+    } else {
+      request->send(400, "application/json", "{\"error\":\"no key\"}");
+    }
+  });
+
   // Theme endpoints
   server.on("/api/themes", HTTP_GET, [](AsyncWebServerRequest *request){
     // List of available themes (files under /themes/*.css)

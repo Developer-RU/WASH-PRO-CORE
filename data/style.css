@@ -194,7 +194,7 @@ header h1 {
 }
 
 /* Unified Form Elements */
-input, select, button, .btn-like {
+input, select, button, .btn-like, textarea {
   background-color: var(--input-bg-color);
   color: var(--text-color);
   border: 1px solid var(--border-color);

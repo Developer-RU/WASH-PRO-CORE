@@ -8,6 +8,7 @@ void SystemManager::begin() {
   _prefs.begin("system", false);
   _language = _prefs.getString("lang", "en");
   _theme = _prefs.getString("theme", "gp_light");
+  _licenseKey = _prefs.getString("license_key", "");
 }
 
 String SystemManager::getInfoJSON() {
@@ -48,6 +49,7 @@ String SystemManager::getSystemJSON() {
   doc["swSerial"] = "v1.0.0";
   doc["language"] = _language;
   doc["theme"] = _theme;
+  doc["licenseKey"] = _licenseKey;
   String out;
   serializeJson(doc, out);
   return out;
@@ -65,6 +67,15 @@ void SystemManager::setTheme(const String &theme) {
 
 String SystemManager::getTheme() {
   return _theme;
+}
+
+void SystemManager::setLicenseKey(const String &key) {
+  _licenseKey = key;
+  _prefs.putString("license_key", _licenseKey);
+}
+
+String SystemManager::getLicenseKey() {
+  return _licenseKey;
 }
 
 void SystemManager::handleOTAUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
