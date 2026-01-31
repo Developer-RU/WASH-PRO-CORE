@@ -1,14 +1,16 @@
 {
   "brand": "WASH-PRO",
-  "nav": {"home":"الرئيسية","tasks":"المهام","system":"النظام","wifi":"Wi‑Fi","reboot":"إعادة التشغيل"},
-  "info": {"title":"معلومات","serial":"الرقم التسلسلي","licenseActive":"الترخيص مفعل","freeHeap":"المساحة الحرة","heapSize":"حجم الذاكرة","userScripts":"سكربتات المستخدم","runningTasks":"المهام التشغيلية"},
-  "tasks":{"title":"المهام"},
-  "system":{"title":"النظام","sw":"البرنامج","theme":"المظهر","language":"اللغة","fw":"البرنامج الثابت / نظام الملفات"},
-  "firmware":{"uploadButton":"تحميل البرنامج (OTA)"},
+  "nav": {"home":"الرئيسية","tasks":"المهام","system":"النظام","wifi":"الشبكة","files":"الملفات","update":"تحديث","reboot":"إعادة التشغيل"},
+  "info": {"title":"معلومات","serial":"الرقم التسلسلي","licenseActive":"الرخصة نشطة","freeHeap":"الذاكرة الحرة","heapSize":"حجم الذاكرة","createdTasks":"المهام المنشأة","runningTasks":"المهام قيد التشغيل","yes":"نعم","no":"لا"},
+  "tasks":{"title":"المهام","create":"إنشاء مهمة","createPrompt":"اسم المهمة","renamePrompt":"إعادة تسمية المهمة","editScript":"تحرير البرنامج النصي","attachScript":"إرفاق البرنامج النصي","delete":"حذف","deleteConfirm":"هل تريد حذف المهمة؟","scriptFor":"برنامج نصي لـ","run":"تشغيل","runStarted":"تم طلب التشغيل","closeEditor":"إغلاق","stateLabel":"الحالة","hasScript":"يحتوي على برنامج نصي","status":{"stopped":"متوقفة","running":"قيد التشغيل"}},
+  "system":{"title":"النظام","sw":"البرنامج","theme":"المظهر","language":"اللغة","fw":"البرنامج الثابت / نظام الملفات","licenseKey":"مفتاح الترخيص","licensePlaceholder":"أدخل مفتاح الترخيص...","saveLicenseButton":"حفظ المفتاح"},
+  "firmware":{"uploadButton":"تحميل البرنامج الثابت (OTA)"},
   "fs":{"uploadButton":"تحميل إلى نظام الملفات"},
+  "files":{"title":"مدير الملفات","name":"الاسم","size":"الحجم","actions":"الإجراءات","delete":"حذف","download":"تنزيل","view":"عرض","deleteConfirm":"هل تريد حذف الملف؟","noFiles":"لم يتم العثور على ملفات."},
+  "update":{"title":"تحديث","autoUpdate":"تحديث تلقائي","firmwareFile":"ملف البرنامج الثابت","fsFile":"ملف نظام الملفات"},
   "save":{"button":"حفظ"},
   "saveTheme":{"button":"حفظ المظهر"},
-  "wifi":{"title":"الشبكة اللاسلكية","ssidPlaceholder":"SSID","passPlaceholder":"كلمة المرور","saveButton":"حفظ والاتصال","connected":"متصل","failed":"فشل الاتصال"},
-  "reboot":{"title":"إعادة التشغيل","typeLabel":"النوع:","typeSoft":"ناعم","typeHard":"قاسي","delayLabel":"التأخير (ث):","button":"إعادة التشغيل"},
-  "alerts":{"selectFile":"اختر ملفًا","saved":"تم الحفظ","themeSaved":"تم حفظ المظهر","uploadStarted":"تم بدء التحميل. سيعيد الجهاز التشغيل بعد التحديث.","fileUploaded":"تم تحميل الملف"}
+  "wifi":{"title":"شبكة لاسلكية","ssidPlaceholder":"اسم الشبكة (SSID)","passPlaceholder":"كلمة المرور","saveButton":"حفظ واتصال","connected":"متصل","failed":"فشل الاتصال"},
+  "reboot":{"title":"إعادة التشغيل","typeLabel":"النوع:","typeSoft":"ناعم","typeHard":"قاسي","delayLabel":"تأخير (ثانية):","button":"إعادة التشغيل"},
+  "alerts":{"selectFile":"اختر ملف","saved":"تم الحفظ","themeSaved":"تم حفظ المظهر","uploadStarted":"بدأ التحميل. سيتم إعادة تشغيل الجهاز بعد التحديث.","fileUploaded":"تم تحميل الملف"}
 }

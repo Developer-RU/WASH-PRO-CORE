@@ -1,16 +1,16 @@
 {
   "brand": "WASH-PRO",
   "nav": {"home":"Inicio","tasks":"Tareas","system":"Sistema","wifi":"Red","files":"Archivos","update":"Actualizar","reboot":"Reiniciar"},
-  "info": {"title":"Información","serial":"Serie","licenseActive":"Licencia activa","freeHeap":"Heap libre","heapSize":"Tamaño del heap","createdTasks":"Tareas creadas","runningTasks":"Tareas en ejecución"},
-  "tasks":{"title":"Tareas","create":"Crear Tarea","createPrompt":"Nombre de la tarea","renamePrompt":"Renombrar tarea","editScript":"Editar script","attachScript":"Adjuntar script","delete":"Eliminar","deleteConfirm":"¿Eliminar tarea?","scriptFor":"Script para","run":"Ejecutar","runStarted":"Ejecución solicitada","closeEditor":"Cerrar"},
-  "system":{"title":"Sistema","sw":"Software","theme":"Apariencia","language":"Idioma","fw":"Firmware / Sistema de archivos"},
+  "info": {"title":"Información","serial":"Serie","licenseActive":"Licencia activa","freeHeap":"Heap libre","heapSize":"Tamaño del heap","createdTasks":"Tareas creadas","runningTasks":"Tareas en ejecución","yes":"Sí","no":"No"},
+  "tasks":{"title":"Tareas","create":"Crear Tarea","createPrompt":"Nombre de la tarea","renamePrompt":"Renombrar tarea","editScript":"Editar script","attachScript":"Adjuntar script","delete":"Eliminar","deleteConfirm":"¿Eliminar tarea?","scriptFor":"Script para","run":"Ejecutar","runStarted":"Ejecución solicitada","closeEditor":"Cerrar","stateLabel":"Estado","hasScript":"tiene script","status":{"stopped":"detenida","running":"en ejecución"}},
+  "system":{"title":"Sistema","sw":"Software","theme":"Apariencia","language":"Idioma","fw":"Firmware / Sistema de archivos","licenseKey":"Clave de licencia","licensePlaceholder":"Introduzca la clave de licencia...","saveLicenseButton":"Guardar Clave"},
   "firmware":{"uploadButton":"Subir firmware (OTA)"},
   "fs":{"uploadButton":"Subir al sistema de archivos"},
   "files":{"title":"Gestor de archivos","name":"Nombre","size":"Tamaño","actions":"Acciones","delete":"Eliminar","download":"Descargar","view":"Ver","deleteConfirm":"¿Eliminar archivo?","noFiles":"No se encontraron archivos."},
-  "update":{"title":"Actualizar"},
+  "update":{"title":"Actualizar","autoUpdate":"Actualización automática","firmwareFile":"Archivo de firmware","fsFile":"Archivo de sistema de archivos"},
   "save":{"button":"Guardar"},
   "saveTheme":{"button":"Guardar tema"},
-  "wifi":{"title":"Red inalámbrica","ssidPlaceholder":"SSID","passPlaceholder":"Contraseña","saveButton":"Guardar y conectar","connected":"Conectado","failed":"Error al conectar"},
+  "wifi":{"title":"Red inalámbrica","ssidPlaceholder":"Nombre de red (SSID)","passPlaceholder":"Contraseña","saveButton":"Guardar y conectar","connected":"Conectado","failed":"Error al conectar"},
   "reboot":{"title":"Reiniciar","typeLabel":"Tipo:","typeSoft":"Suave","typeHard":"Forzado","delayLabel":"Retardo (seg):","button":"Reiniciar"},
   "alerts":{"selectFile":"Seleccione un archivo","saved":"Guardado","themeSaved":"Tema guardado","uploadStarted":"Carga iniciada. El dispositivo se reiniciará después de la actualización.","fileUploaded":"Archivo subido"}
 }

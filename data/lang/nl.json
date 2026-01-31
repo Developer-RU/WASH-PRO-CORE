@@ -1,14 +1,16 @@
 {
   "brand": "WASH-PRO",
-  "nav": {"home":"Start","tasks":"Taken","system":"Systeem","wifi":"Wi‑Fi","reboot":"Herstart"},
-  "info": {"title":"Informatie","serial":"Serienummer","licenseActive":"Licentie actief","freeHeap":"Vrije heap","heapSize":"Heap grootte","userScripts":"Gebruikersscripts","runningTasks":"Lopende taken"},
-  "tasks":{"title":"Taken"},
-  "system":{"title":"Systeem","sw":"SW","theme":"Thema","language":"Taal","fw":"Firmware / Bestandssysteem"},
+  "nav": {"home":"Start","tasks":"Taken","system":"Systeem","wifi":"Netwerk","files":"Bestanden","update":"Update","reboot":"Herstart"},
+  "info": {"title":"Informatie","serial":"Serienummer","licenseActive":"Licentie actief","freeHeap":"Vrije heap","heapSize":"Heap grootte","createdTasks":"Aangemaakte taken","runningTasks":"Lopende taken","yes":"Ja","no":"Nee"},
+  "tasks":{"title":"Taken","create":"Taak aanmaken","createPrompt":"Taaknaam","renamePrompt":"Taak hernoemen","editScript":"Script bewerken","attachScript":"Script bijvoegen","delete":"Verwijderen","deleteConfirm":"Taak verwijderen?","scriptFor":"Script voor","run":"Start","runStarted":"Start aangevraagd","closeEditor":"Sluiten","stateLabel":"Status","hasScript":"heeft script","status":{"stopped":"gestopt","running":"draait"}},
+  "system":{"title":"Systeem","sw":"Software","theme":"Uiterlijk","language":"Taal","fw":"Firmware / Bestandssysteem","licenseKey":"Licentiesleutel","licensePlaceholder":"Voer licentiesleutel in...","saveLicenseButton":"Sleutel opslaan"},
   "firmware":{"uploadButton":"Firmware uploaden (OTA)"},
   "fs":{"uploadButton":"Uploaden naar bestandssysteem"},
+  "files":{"title":"Bestandsbeheer","name":"Naam","size":"Grootte","actions":"Acties","delete":"Verwijderen","download":"Downloaden","view":"Bekijken","deleteConfirm":"Bestand verwijderen?","noFiles":"Geen bestanden gevonden."},
+  "update":{"title":"Update","autoUpdate":"Automatische update","firmwareFile":"Firmware-bestand","fsFile":"Bestandssysteem-bestand"},
   "save":{"button":"Opslaan"},
   "saveTheme":{"button":"Thema opslaan"},
-  "wifi":{"title":"Draadloos netwerk","ssidPlaceholder":"SSID","passPlaceholder":"Wachtwoord","saveButton":"Opslaan en verbinden","connected":"Verbonden","failed":"Verbinding mislukt"},
-  "reboot":{"title":"Herstart","typeLabel":"Type:","typeSoft":"Zacht","typeHard":"Hard","delayLabel":"Vertraging (sec):","button":"Herstart"},
+  "wifi":{"title":"Draadloos netwerk","ssidPlaceholder":"Netwerknaam (SSID)","passPlaceholder":"Wachtwoord","saveButton":"Opslaan en verbinden","connected":"Verbonden","failed":"Verbinding mislukt"},
+  "reboot":{"title":"Herstart","typeLabel":"Type:","typeSoft":"Zacht","typeHard":"Hard","delayLabel":"Vertraging (sec):","button":"Herstarten"},
   "alerts":{"selectFile":"Selecteer bestand","saved":"Opgeslagen","themeSaved":"Thema opgeslagen","uploadStarted":"Upload gestart. Het apparaat wordt herstart na de update.","fileUploaded":"Bestand geüpload"}
 }

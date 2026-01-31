@@ -1,14 +1,16 @@
 {
   "brand": "WASH-PRO",
-  "nav": {"home":"Início","tasks":"Tarefas","system":"Sistema","wifi":"Wi‑Fi","reboot":"Reiniciar"},
-  "info": {"title":"Informação","serial":"Serial","licenseActive":"Licença ativa","freeHeap":"Heap livre","heapSize":"Tamanho do heap","userScripts":"Scripts do usuário","runningTasks":"Tarefas em execução"},
-  "tasks":{"title":"Tarefas"},
-  "system":{"title":"Sistema","sw":"SW","theme":"Tema","language":"Idioma","fw":"Firmware / Sistema de arquivos"},
+  "nav": {"home":"Início","tasks":"Tarefas","system":"Sistema","wifi":"Rede","files":"Ficheiros","update":"Atualizar","reboot":"Reiniciar"},
+  "info": {"title":"Informação","serial":"Serial","licenseActive":"Licença ativa","freeHeap":"Heap livre","heapSize":"Tamanho do heap","createdTasks":"Tarefas criadas","runningTasks":"Tarefas em execução","yes":"Sim","no":"Não"},
+  "tasks":{"title":"Tarefas","create":"Criar Tarefa","createPrompt":"Nome da tarefa","renamePrompt":"Renomear tarefa","editScript":"Editar script","attachScript":"Anexar script","delete":"Apagar","deleteConfirm":"Apagar tarefa?","scriptFor":"Script para","run":"Executar","runStarted":"Execução solicitada","closeEditor":"Fechar","stateLabel":"Estado","hasScript":"tem script","status":{"stopped":"parado","running":"a correr"}},
+  "system":{"title":"Sistema","sw":"Software","theme":"Aparência","language":"Idioma","fw":"Firmware / Sistema de ficheiros","licenseKey":"Chave de licença","licensePlaceholder":"Introduza a chave de licença...","saveLicenseButton":"Guardar Chave"},
   "firmware":{"uploadButton":"Enviar firmware (OTA)"},
   "fs":{"uploadButton":"Enviar para o sistema de arquivos"},
+  "files":{"title":"Gestor de Ficheiros","name":"Nome","size":"Tamanho","actions":"Ações","delete":"Apagar","download":"Transferir","view":"Ver","deleteConfirm":"Apagar ficheiro?","noFiles":"Nenhum ficheiro encontrado."},
+  "update":{"title":"Atualizar","autoUpdate":"Atualização automática","firmwareFile":"Ficheiro de firmware","fsFile":"Ficheiro do sistema de ficheiros"},
   "save":{"button":"Salvar"},
   "saveTheme":{"button":"Salvar tema"},
-  "wifi":{"title":"Rede sem fio","ssidPlaceholder":"SSID","passPlaceholder":"Senha","saveButton":"Salvar e conectar","connected":"Conectado","failed":"Falha ao conectar"},
-  "reboot":{"title":"Reiniciar","typeLabel":"Tipo:","typeSoft":"Suave","typeHard":"Forçado","delayLabel":"Atraso (seg):","button":"Reiniciar"},
+  "wifi":{"title":"Rede sem fio","ssidPlaceholder":"Nome da Rede (SSID)","passPlaceholder":"Senha","saveButton":"Salvar e conectar","connected":"Conectado","failed":"Falha ao conectar"},
+  "reboot":{"title":"Reiniciar","typeLabel":"Tipo:","typeSoft":"Suave","typeHard":"Forçado","delayLabel":"Atraso (s):","button":"Reiniciar"},
   "alerts":{"selectFile":"Selecione um arquivo","saved":"Salvo","themeSaved":"Tema salvo","uploadStarted":"Envio iniciado. O dispositivo reiniciará após a atualização.","fileUploaded":"Arquivo enviado"}
 }

@@ -50,6 +50,7 @@ String SystemManager::getSystemJSON() {
   doc["language"] = _language;
   doc["theme"] = _theme;
   doc["licenseKey"] = _licenseKey;
+  doc["autoUpdate"] = _prefs.getBool("auto_update", false);
   String out;
   serializeJson(doc, out);
   return out;
@@ -76,6 +77,10 @@ void SystemManager::setLicenseKey(const String &key) {
 
 String SystemManager::getLicenseKey() {
   return _licenseKey;
+}
+
+void SystemManager::setAutoUpdate(bool enabled) {
+  _prefs.putBool("auto_update", enabled);
 }
 
 void SystemManager::handleOTAUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {

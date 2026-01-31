@@ -1,14 +1,16 @@
 {
   "brand": "WASH-PRO",
-  "nav": {"home":"ホーム","tasks":"タスク","system":"システム","wifi":"Wi‑Fi","reboot":"再起動"},
-  "info": {"title":"情報","serial":"シリアル","licenseActive":"ライセンス有効","freeHeap":"空きヒープ","heapSize":"ヒープサイズ","userScripts":"ユーザースクリプト","runningTasks":"実行中のタスク"},
-  "tasks":{"title":"タスク"},
-  "system":{"title":"システム","sw":"ソフトウェア","theme":"テーマ","language":"言語","fw":"ファームウェア / ファイルシステム"},
+  "nav": {"home":"ホーム","tasks":"タスク","system":"システム","wifi":"ネットワーク","files":"ファイル","update":"更新","reboot":"再起動"},
+  "info": {"title":"情報","serial":"シリアル","licenseActive":"ライセンス有効","freeHeap":"空きヒープ","heapSize":"ヒープサイズ","createdTasks":"作成されたタスク","runningTasks":"実行中のタスク","yes":"はい","no":"いいえ"},
+  "tasks":{"title":"タスク","create":"タスクを作成","createPrompt":"タスク名","renamePrompt":"タスク名を変更","editScript":"スクリプトを編集","attachScript":"スクリプトを添付","delete":"削除","deleteConfirm":"タスクを削除しますか？","scriptFor":"スクリプト","run":"実行","runStarted":"実行が要求されました","closeEditor":"閉じる","stateLabel":"状態","hasScript":"スクリプトあり","status":{"stopped":"停止","running":"実行中"}},
+  "system":{"title":"システム","sw":"ソフトウェア","theme":"外観","language":"言語","fw":"ファームウェア / ファイルシステム","licenseKey":"ライセンスキー","licensePlaceholder":"ライセンスキーを入力してください...","saveLicenseButton":"キーを保存"},
   "firmware":{"uploadButton":"ファームウェアをアップロード (OTA)"},
   "fs":{"uploadButton":"ファイルシステムにアップロード"},
+  "files":{"title":"ファイルマネージャー","name":"名前","size":"サイズ","actions":"アクション","delete":"削除","download":"ダウンロード","view":"表示","deleteConfirm":"ファイルを削除しますか？","noFiles":"ファイルが見つかりません。"},
+  "update":{"title":"更新","autoUpdate":"自動更新","firmwareFile":"ファームウェアファイル","fsFile":"ファイルシステムファイル"},
   "save":{"button":"保存"},
   "saveTheme":{"button":"テーマを保存"},
-  "wifi":{"title":"無線ネットワーク","ssidPlaceholder":"SSID","passPlaceholder":"パスワード","saveButton":"保存して接続","connected":"接続済み","failed":"接続に失敗しました"},
-  "reboot":{"title":"再起動","typeLabel":"種類:","typeSoft":"ソフト","typeHard":"ハード","delayLabel":"遅延 (秒):","button":"再起動"},
+  "wifi":{"title":"無線ネットワーク","ssidPlaceholder":"ネットワーク名 (SSID)","passPlaceholder":"パスワード","saveButton":"保存して接続","connected":"接続済み","failed":"接続に失敗しました"},
+  "reboot":{"title":"再起動","typeLabel":"種類:","typeSoft":"ソフト","typeHard":"ハード","delayLabel":"遅延 (秒):","button":"再起動する"},
   "alerts":{"selectFile":"ファイルを選択","saved":"保存しました","themeSaved":"テーマが保存されました","uploadStarted":"アップロードを開始しました。更新後にデバイスが再起動します。","fileUploaded":"ファイルがアップロードされました"}
 }

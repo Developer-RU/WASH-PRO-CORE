@@ -248,6 +248,17 @@ void setup() {
     }
   });
 
+  server.on("/api/autoupdate", HTTP_POST, [](AsyncWebServerRequest *request){
+    if (request->hasParam("enabled", true)) {
+      String enabledStr = request->getParam("enabled", true)->value();
+      bool enabled = (enabledStr == "true");
+      sys.setAutoUpdate(enabled);
+      request->send(200, "application/json", "{\"ok\":true}");
+    } else {
+      request->send(400, "application/json", "{\"error\":\"missing enabled param\"}");
+    }
+  });
+
   // Theme endpoints
   server.on("/api/themes", HTTP_GET, [](AsyncWebServerRequest *request){
     // List of available themes (files under /themes/*.css)

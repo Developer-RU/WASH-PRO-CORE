@@ -1,16 +1,16 @@
 {
   "brand": "WASH-PRO",
   "nav": {"home":"Home","tasks":"Tasks","system":"System","wifi":"Network","files":"Files","update":"Update","reboot":"Reboot"},
-  "info": {"title":"Information","serial":"Serial","licenseActive":"License active","freeHeap":"Free heap","heapSize":"Heap size","createdTasks":"Created tasks","runningTasks":"Running tasks"},
-  "tasks":{"title":"Tasks","create":"Create Task","createPrompt":"Task name","renamePrompt":"Rename task","editScript":"Edit script","attachScript":"Attach script","delete":"Delete","deleteConfirm":"Delete task?","scriptFor":"Script for","run":"Run","runStarted":"Run requested","closeEditor":"Close"},
+  "info": {"title":"Information","serial":"Serial","licenseActive":"License active","freeHeap":"Free heap","heapSize":"Heap size","createdTasks":"Created tasks","runningTasks":"Running tasks","yes":"Yes","no":"No"},
+  "tasks":{"title":"Tasks","create":"Create Task","createPrompt":"Task name","renamePrompt":"Rename task","editScript":"Edit script","attachScript":"Attach script","delete":"Delete","deleteConfirm":"Delete task?","scriptFor":"Script for","run":"Run","runStarted":"Run requested","closeEditor":"Close","stateLabel":"State","hasScript":"has script","status":{"stopped":"stopped","running":"running"}},
   "system":{"title":"System","sw":"Software","theme":"Appearance","language":"Language","fw":"Firmware / Filesystem","licenseKey":"License Key","licensePlaceholder":"Enter license key...","saveLicenseButton":"Save Key"},
   "firmware":{"uploadButton":"Upload firmware (OTA)"},
   "fs":{"uploadButton":"Upload to filesystem"},
   "files":{"title":"File Manager","name":"Name","size":"Size","actions":"Actions","delete":"Delete","download":"Download","view":"View","deleteConfirm":"Delete file?","noFiles":"No files found."},
-  "update":{"title":"Update"},
+  "update":{"title":"Update","autoUpdate":"Automatic update","firmwareFile":"Firmware file","fsFile":"Filesystem file"},
   "save":{"button":"Save"},
   "saveTheme":{"button":"Save theme"},
-  "wifi":{"title":"Wireless network","ssidPlaceholder":"SSID","passPlaceholder":"Password","saveButton":"Save and connect","connected":"Connected","failed":"Failed to connect"},
+  "wifi":{"title":"Wireless network","ssidPlaceholder":"Network Name (SSID)","passPlaceholder":"Password","saveButton":"Save and connect","connected":"Connected","failed":"Failed to connect"},
   "reboot":{"title":"Reboot","typeLabel":"Type:","typeSoft":"Soft","typeHard":"Hard","delayLabel":"Delay (sec):","button":"Reboot"},
   "alerts":{"selectFile":"Select file","saved":"Saved","themeSaved":"Theme saved","uploadStarted":"Upload started. Device will restart after update.","fileUploaded":"File uploaded"}
 }

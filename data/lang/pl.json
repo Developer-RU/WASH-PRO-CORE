@@ -1,14 +1,16 @@
 {
   "brand": "WASH-PRO",
-  "nav": {"home":"Główna","tasks":"Zadania","system":"System","wifi":"Wi‑Fi","reboot":"Restart"},
-  "info": {"title":"Informacje","serial":"Seryjny","licenseActive":"Licencja aktywna","freeHeap":"Wolny stos","heapSize":"Rozmiar stosu","userScripts":"Skrypty użytkownika","runningTasks":"Uruchomione zadania"},
-  "tasks":{"title":"Zadania"},
-  "system":{"title":"System","sw":"SW","theme":"Motyw","language":"Język","fw":"Firmware / System plików"},
+  "nav": {"home":"Główna","tasks":"Zadania","system":"System","wifi":"Sieć","files":"Pliki","update":"Aktualizuj","reboot":"Restart"},
+  "info": {"title":"Informacje","serial":"Seryjny","licenseActive":"Licencja aktywna","freeHeap":"Wolny stos","heapSize":"Rozmiar stosu","createdTasks":"Utworzone zadania","runningTasks":"Uruchomione zadania","yes":"Tak","no":"Nie"},
+  "tasks":{"title":"Zadania","create":"Utwórz zadanie","createPrompt":"Nazwa zadania","renamePrompt":"Zmień nazwę zadania","editScript":"Edytuj skrypt","attachScript":"Dołącz skrypt","delete":"Usuń","deleteConfirm":"Usunąć zadanie?","scriptFor":"Skrypt dla","run":"Uruchom","runStarted":"Uruchomienie zgłoszone","closeEditor":"Zamknij","stateLabel":"Stan","hasScript":"ma skrypt","status":{"stopped":"zatrzymane","running":"działa"}},
+  "system":{"title":"System","sw":"Oprogramowanie","theme":"Wygląd","language":"Język","fw":"Firmware / System plików","licenseKey":"Klucz licencyjny","licensePlaceholder":"Wprowadź klucz licencyjny...","saveLicenseButton":"Zapisz klucz"},
   "firmware":{"uploadButton":"Prześlij firmware (OTA)"},
   "fs":{"uploadButton":"Prześlij do systemu plików"},
+  "files":{"title":"Menedżer plików","name":"Nazwa","size":"Rozmiar","actions":"Akcje","delete":"Usuń","download":"Pobierz","view":"Zobacz","deleteConfirm":"Usunąć plik?","noFiles":"Nie znaleziono plików."},
+  "update":{"title":"Aktualizuj","autoUpdate":"Automatyczna aktualizacja","firmwareFile":"Plik firmware","fsFile":"Plik systemu plików"},
   "save":{"button":"Zapisz"},
   "saveTheme":{"button":"Zapisz motyw"},
-  "wifi":{"title":"Sieć bezprzewodowa","ssidPlaceholder":"SSID","passPlaceholder":"Hasło","saveButton":"Zapisz i połącz","connected":"Połączono","failed":"Połączenie nie powiodło się"},
-  "reboot":{"title":"Restart","typeLabel":"Typ:","typeSoft":"Miękki","typeHard":"Twardy","delayLabel":"Opóźnienie (sek):","button":"Restartuj"},
+  "wifi":{"title":"Sieć bezprzewodowa","ssidPlaceholder":"Nazwa sieci (SSID)","passPlaceholder":"Hasło","saveButton":"Zapisz i połącz","connected":"Połączono","failed":"Połączenie nie powiodło się"},
+  "reboot":{"title":"Restart","typeLabel":"Typ:","typeSoft":"Miękki","typeHard":"Twardy","delayLabel":"Opóźnienie (s):","button":"Restartuj"},
   "alerts":{"selectFile":"Wybierz plik","saved":"Zapisano","themeSaved":"Motyw zapisany","uploadStarted":"Wysyłanie rozpoczęte. Urządzenie uruchomi się ponownie po aktualizacji.","fileUploaded":"Plik przesłany"}
 }

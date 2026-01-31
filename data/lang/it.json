@@ -1,14 +1,16 @@
 {
   "brand": "WASH-PRO",
-  "nav": {"home":"Home","tasks":"Attività","system":"Sistema","wifi":"Wi‑Fi","reboot":"Riavvia"},
-  "info": {"title":"Informazioni","serial":"Seriale","licenseActive":"Licenza attiva","freeHeap":"Heap libero","heapSize":"Dimensione heap","userScripts":"Script utente","runningTasks":"Attività in esecuzione"},
-  "tasks":{"title":"Attività"},
-  "system":{"title":"Sistema","sw":"SW","theme":"Tema","language":"Lingua","fw":"Firmware / File system"},
+  "nav": {"home":"Home","tasks":"Attività","system":"Sistema","wifi":"Rete","files":"File","update":"Aggiorna","reboot":"Riavvia"},
+  "info": {"title":"Informazioni","serial":"Seriale","licenseActive":"Licenza attiva","freeHeap":"Heap libero","heapSize":"Dimensione heap","createdTasks":"Attività create","runningTasks":"Attività in esecuzione","yes":"Sì","no":"No"},
+  "tasks":{"title":"Attività","create":"Crea Attività","createPrompt":"Nome attività","renamePrompt":"Rinomina attività","editScript":"Modifica script","attachScript":"Allega script","delete":"Elimina","deleteConfirm":"Eliminare l'attività?","scriptFor":"Script per","run":"Esegui","runStarted":"Esecuzione richiesta","closeEditor":"Chiudi","stateLabel":"Stato","hasScript":"ha script","status":{"stopped":"fermato","running":"in esecuzione"}},
+  "system":{"title":"Sistema","sw":"Software","theme":"Aspetto","language":"Lingua","fw":"Firmware / File system","licenseKey":"Chiave di licenza","licensePlaceholder":"Inserisci la chiave di licenza...","saveLicenseButton":"Salva Chiave"},
   "firmware":{"uploadButton":"Carica firmware (OTA)"},
   "fs":{"uploadButton":"Carica nel file system"},
+  "files":{"title":"Gestore file","name":"Nome","size":"Dimensione","actions":"Azioni","delete":"Elimina","download":"Scarica","view":"Visualizza","deleteConfirm":"Eliminare il file?","noFiles":"Nessun file trovato."},
+  "update":{"title":"Aggiorna","autoUpdate":"Aggiornamento automatico","firmwareFile":"File firmware","fsFile":"File del file system"},
   "save":{"button":"Salva"},
   "saveTheme":{"button":"Salva tema"},
-  "wifi":{"title":"Rete wireless","ssidPlaceholder":"SSID","passPlaceholder":"Password","saveButton":"Salva e connetti","connected":"Connesso","failed":"Connessione fallita"},
-  "reboot":{"title":"Riavvio","typeLabel":"Tipo:","typeSoft":"Soft","typeHard":"Hard","delayLabel":"Ritardo (sec):","button":"Riavvia"},
+  "wifi":{"title":"Rete wireless","ssidPlaceholder":"Nome rete (SSID)","passPlaceholder":"Password","saveButton":"Salva e connetti","connected":"Connesso","failed":"Connessione fallita"},
+  "reboot":{"title":"Riavvio","typeLabel":"Tipo:","typeSoft":"Morbido","typeHard":"Forzato","delayLabel":"Ritardo (sec):","button":"Riavvia"},
   "alerts":{"selectFile":"Seleziona file","saved":"Salvato","themeSaved":"Tema salvato","uploadStarted":"Caricamento avviato. Il dispositivo si riavvierà dopo l'aggiornamento.","fileUploaded":"File caricato"}
 }

@@ -1,14 +1,16 @@
 {
   "brand": "WASH-PRO",
-  "nav": {"home":"Start","tasks":"Uppgifter","system":"System","wifi":"Wi‑Fi","reboot":"Starta om"},
-  "info": {"title":"Information","serial":"Serienummer","licenseActive":"Licens aktiv","freeHeap":"Ledigt minne","heapSize":"Heap storlek","userScripts":"Användarskript","runningTasks":"Körande uppgifter"},
-  "tasks":{"title":"Uppgifter"},
-  "system":{"title":"System","sw":"SW","theme":"Tema","language":"Språk","fw":"Firmware / Filsystem"},
+  "nav": {"home":"Start","tasks":"Uppgifter","system":"System","wifi":"Nätverk","files":"Filer","update":"Uppdatera","reboot":"Starta om"},
+  "info": {"title":"Information","serial":"Serienummer","licenseActive":"Licens aktiv","freeHeap":"Ledigt minne","heapSize":"Heap storlek","createdTasks":"Skapade uppgifter","runningTasks":"Körande uppgifter","yes":"Ja","no":"Nej"},
+  "tasks":{"title":"Uppgifter","create":"Skapa uppgift","createPrompt":"Uppgiftsnamn","renamePrompt":"Byt namn på uppgift","editScript":"Redigera skript","attachScript":"Bifoga skript","delete":"Ta bort","deleteConfirm":"Ta bort uppgift?","scriptFor":"Skript för","run":"Kör","runStarted":"Körning begärd","closeEditor":"Stäng","stateLabel":"Status","hasScript":"har skript","status":{"stopped":"stoppad","running":"körs"}},
+  "system":{"title":"System","sw":"Programvara","theme":"Utseende","language":"Språk","fw":"Firmware / Filsystem","licenseKey":"Licensnyckel","licensePlaceholder":"Ange licensnyckel...","saveLicenseButton":"Spara nyckel"},
   "firmware":{"uploadButton":"Ladda upp firmware (OTA)"},
   "fs":{"uploadButton":"Ladda upp till filsystemet"},
+  "files":{"title":"Filhanterare","name":"Namn","size":"Storlek","actions":"Åtgärder","delete":"Ta bort","download":"Ladda ner","view":"Visa","deleteConfirm":"Ta bort fil?","noFiles":"Inga filer hittades."},
+  "update":{"title":"Uppdatera","autoUpdate":"Automatisk uppdatering","firmwareFile":"Firmware-fil","fsFile":"Filsystem-fil"},
   "save":{"button":"Spara"},
   "saveTheme":{"button":"Spara tema"},
-  "wifi":{"title":"Trådlöst nätverk","ssidPlaceholder":"SSID","passPlaceholder":"Lösenord","saveButton":"Spara och anslut","connected":"Ansluten","failed":"Misslyckades att ansluta"},
-  "reboot":{"title":"Starta om","typeLabel":"Typ:","typeSoft":"Mjuk","typeHard":"Hård","delayLabel":"Fördröjning (sek):","button":"Starta om"},
+  "wifi":{"title":"Trådlöst nätverk","ssidPlaceholder":"Nätverksnamn (SSID)","passPlaceholder":"Lösenord","saveButton":"Spara och anslut","connected":"Ansluten","failed":"Misslyckades att ansluta"},
+  "reboot":{"title":"Starta om","typeLabel":"Typ:","typeSoft":"Mjuk","typeHard":"Hård","delayLabel":"Fördröjning (s):","button":"Starta om"},
   "alerts":{"selectFile":"Välj fil","saved":"Sparat","themeSaved":"Tema sparat","uploadStarted":"Uppladdning startad. Enheten startar om efter uppdateringen.","fileUploaded":"Fil uppladdad"}
 }

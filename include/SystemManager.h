@@ -18,6 +18,7 @@ public:
   String getTheme();
   void setLicenseKey(const String &key);
   String getLicenseKey();
+  void setAutoUpdate(bool enabled);
   void handleOTAUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
   void handleFSUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
   bool saveWiFiCredentials(const String &ssid, const String &password);

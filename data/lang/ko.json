@@ -1,14 +1,16 @@
 {
   "brand": "WASH-PRO",
-  "nav": {"home":"홈","tasks":"작업","system":"시스템","wifi":"Wi‑Fi","reboot":"재부팅"},
-  "info": {"title":"정보","serial":"시리얼","licenseActive":"라이선스 활성","freeHeap":"여유 힙","heapSize":"힙 크기","userScripts":"사용자 스크립트","runningTasks":"실행 중인 작업"},
-  "tasks":{"title":"작업"},
-  "system":{"title":"시스템","sw":"SW","theme":"테마","language":"언어","fw":"펌웨어 / 파일 시스템"},
+  "nav": {"home":"홈","tasks":"작업","system":"시스템","wifi":"네트워크","files":"파일","update":"업데이트","reboot":"재부팅"},
+  "info": {"title":"정보","serial":"시리얼","licenseActive":"라이선스 활성","freeHeap":"사용 가능한 힙","heapSize":"힙 크기","createdTasks":"생성된 작업","runningTasks":"실행 중인 작업","yes":"예","no":"아니요"},
+  "tasks":{"title":"작업","create":"작업 생성","createPrompt":"작업 이름","renamePrompt":"작업 이름 바꾸기","editScript":"스크립트 편집","attachScript":"스크립트 첨부","delete":"삭제","deleteConfirm":"작업을 삭제하시겠습니까?","scriptFor":"스크립트","run":"실행","runStarted":"실행 요청됨","closeEditor":"닫기","stateLabel":"상태","hasScript":"스크립트 있음","status":{"stopped":"중지됨","running":"실행 중"}},
+  "system":{"title":"시스템","sw":"소프트웨어","theme":"테마","language":"언어","fw":"펌웨어 / 파일 시스템","licenseKey":"라이선스 키","licensePlaceholder":"라이선스 키를 입력하세요...","saveLicenseButton":"키 저장"},
   "firmware":{"uploadButton":"펌웨어 업로드 (OTA)"},
   "fs":{"uploadButton":"파일 시스템에 업로드"},
+  "files":{"title":"파일 관리자","name":"이름","size":"크기","actions":"작업","delete":"삭제","download":"다운로드","view":"보기","deleteConfirm":"파일을 삭제하시겠습니까?","noFiles":"파일을 찾을 수 없습니다."},
+  "update":{"title":"업데이트","autoUpdate":"자동 업데이트","firmwareFile":"펌웨어 파일","fsFile":"파일 시스템 파일"},
   "save":{"button":"저장"},
   "saveTheme":{"button":"테마 저장"},
-  "wifi":{"title":"무선 네트워크","ssidPlaceholder":"SSID","passPlaceholder":"비밀번호","saveButton":"저장하고 연결","connected":"연결됨","failed":"연결 실패"},
+  "wifi":{"title":"무선 네트워크","ssidPlaceholder":"네트워크 이름 (SSID)","passPlaceholder":"비밀번호","saveButton":"저장 및 연결","connected":"연결됨","failed":"연결 실패"},
   "reboot":{"title":"재부팅","typeLabel":"유형:","typeSoft":"소프트","typeHard":"하드","delayLabel":"지연 (초):","button":"재부팅"},
-  "alerts":{"selectFile":"파일을 선택","saved":"저장됨","themeSaved":"테마가 저장되었습니다","uploadStarted":"업로드 시작. 업데이트 후 장치가 재시작됩니다.","fileUploaded":"파일 업로드됨"}
+  "alerts":{"selectFile":"파일 선택","saved":"저장됨","themeSaved":"테마 저장됨","uploadStarted":"업로드 시작됨. 업데이트 후 장치가 재부팅됩니다.","fileUploaded":"파일 업로드됨"}
 }

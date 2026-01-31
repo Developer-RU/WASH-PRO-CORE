@@ -1,14 +1,16 @@
 {
   "brand": "WASH-PRO",
-  "nav": {"home":"Koti","tasks":"Tehtävät","system":"Järjestelmä","wifi":"Wi‑Fi","reboot":"Käynnistä uudelleen"},
-  "info": {"title":"Tietoa","serial":"Sarjanumero","licenseActive":"Lisenssi aktiivinen","freeHeap":"Vapaa pino","heapSize":"Pinon koko","userScripts":"Käyttäjän skriptit","runningTasks":"Käynnissä olevat tehtävät"},
-  "tasks":{"title":"Tehtävät"},
-  "system":{"title":"Järjestelmä","sw":"SW","theme":"Teema","language":"Kieli","fw":"Firmware / Tiedostojärjestelmä"},
+  "nav": {"home":"Koti","tasks":"Tehtävät","system":"Järjestelmä","wifi":"Verkko","files":"Tiedostot","update":"Päivitä","reboot":"Käynnistä uudelleen"},
+  "info": {"title":"Tietoa","serial":"Sarjanumero","licenseActive":"Lisenssi aktiivinen","freeHeap":"Vapaa pino","heapSize":"Pinon koko","createdTasks":"Luodut tehtävät","runningTasks":"Käynnissä olevat tehtävät","yes":"Kyllä","no":"Ei"},
+  "tasks":{"title":"Tehtävät","create":"Luo Tehtävä","createPrompt":"Tehtävän nimi","renamePrompt":"Nimeä tehtävä uudelleen","editScript":"Muokkaa skriptiä","attachScript":"Liitä skripti","delete":"Poista","deleteConfirm":"Poistetaanko tehtävä?","scriptFor":"Skripti","run":"Suorita","runStarted":"Suoritus pyydetty","closeEditor":"Sulje","stateLabel":"Tila","hasScript":"on skripti","status":{"stopped":"pysäytetty","running":"käynnissä"}},
+  "system":{"title":"Järjestelmä","sw":"Ohjelmisto","theme":"Ulkoasu","language":"Kieli","fw":"Firmware / Tiedostojärjestelmä","licenseKey":"Lisenssiavain","licensePlaceholder":"Syötä lisenssiavain...","saveLicenseButton":"Tallenna Avain"},
   "firmware":{"uploadButton":"Lähetä firmware (OTA)"},
   "fs":{"uploadButton":"Lähetä tiedostojärjestelmään"},
+  "files":{"title":"Tiedostonhallinta","name":"Nimi","size":"Koko","actions":"Toiminnot","delete":"Poista","download":"Lataa","view":"Näytä","deleteConfirm":"Poistetaanko tiedosto?","noFiles":"Tiedostoja ei löytynyt."},
+  "update":{"title":"Päivitä","autoUpdate":"Automaattinen päivitys","firmwareFile":"Firmware-tiedosto","fsFile":"Tiedostojärjestelmän tiedosto"},
   "save":{"button":"Tallenna"},
   "saveTheme":{"button":"Tallenna teema"},
-  "wifi":{"title":"Langaton verkko","ssidPlaceholder":"SSID","passPlaceholder":"Salasana","saveButton":"Tallenna ja yhdistä","connected":"Yhdistetty","failed":"Epäonnistui yhdistettäessä"},
-  "reboot":{"title":"Käynnistä uudelleen","typeLabel":"Tyyppi:","typeSoft":"Pehmeä","typeHard":"Kova","delayLabel":"Viive (sek):","button":"Käynnistä uudelleen"},
+  "wifi":{"title":"Langaton verkko","ssidPlaceholder":"Verkon nimi (SSID)","passPlaceholder":"Salasana","saveButton":"Tallenna ja yhdistä","connected":"Yhdistetty","failed":"Epäonnistui yhdistettäessä"},
+  "reboot":{"title":"Käynnistä uudelleen","typeLabel":"Tyyppi:","typeSoft":"Pehmeä","typeHard":"Kova","delayLabel":"Viive (s):","button":"Käynnistä uudelleen"},
   "alerts":{"selectFile":"Valitse tiedosto","saved":"Tallennettu","themeSaved":"Teema tallennettu","uploadStarted":"Lähetys alkanut. Laite käynnistyy uudelleen päivityksen jälkeen.","fileUploaded":"Tiedosto ladattu"}
 }

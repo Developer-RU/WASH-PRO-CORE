@@ -1,14 +1,16 @@
 {
   "brand": "WASH-PRO",
-  "nav": {"home":"Start","tasks":"Aufgaben","system":"System","wifi":"Wi‑Fi","reboot":"Neustart"},
-  "info": {"title":"Information","serial":"Seriennummer","licenseActive":"Lizenz aktiv","freeHeap":"Freier Heap","heapSize":"Heap Größe","userScripts":"Benutzer‑Skripte","runningTasks":"Laufende Aufgaben"},
-  "tasks":{"title":"Aufgaben"},
-  "system":{"title":"System","sw":"SW","theme":"Thema","language":"Sprache","fw":"Firmware / Dateisystem"},
+  "nav": {"home":"Start","tasks":"Aufgaben","system":"System","wifi":"Netzwerk","files":"Dateien","update":"Aktualisieren","reboot":"Neustart"},
+  "info": {"title":"Information","serial":"Seriennummer","licenseActive":"Lizenz aktiv","freeHeap":"Freier Heap","heapSize":"Heap Größe","createdTasks":"Erstellte Aufgaben","runningTasks":"Laufende Aufgaben","yes":"Ja","no":"Nein"},
+  "tasks":{"title":"Aufgaben","create":"Aufgabe erstellen","createPrompt":"Aufgabenname","renamePrompt":"Aufgabe umbenennen","editScript":"Skript bearbeiten","attachScript":"Skript anhängen","delete":"Löschen","deleteConfirm":"Aufgabe löschen?","scriptFor":"Skript für","run":"Starten","runStarted":"Start angefordert","closeEditor":"Schließen","stateLabel":"Status","hasScript":"hat skript","status":{"stopped":"gestoppt","running":"läuft"}},
+  "system":{"title":"System","sw":"Software","theme":"Erscheinungsbild","language":"Sprache","fw":"Firmware / Dateisystem","licenseKey":"Lizenzschlüssel","licensePlaceholder":"Lizenzschlüssel eingeben...","saveLicenseButton":"Schlüssel Speichern"},
   "firmware":{"uploadButton":"Firmware hochladen (OTA)"},
   "fs":{"uploadButton":"Ins Dateisystem hochladen"},
+  "files":{"title":"Dateimanager","name":"Name","size":"Größe","actions":"Aktionen","delete":"Löschen","download":"Herunterladen","view":"Ansehen","deleteConfirm":"Datei löschen?","noFiles":"Keine Dateien gefunden."},
+  "update":{"title":"Aktualisieren","autoUpdate":"Automatische Aktualisierung","firmwareFile":"Firmware-Datei","fsFile":"Dateisystem-Datei"},
   "save":{"button":"Speichern"},
   "saveTheme":{"button":"Thema speichern"},
-  "wifi":{"title":"Drahtlosnetz","ssidPlaceholder":"SSID","passPlaceholder":"Passwort","saveButton":"Speichern und verbinden","connected":"Verbunden","failed":"Verbindung fehlgeschlagen"},
-  "reboot":{"title":"Neustart","typeLabel":"Typ:","typeSoft":"Soft","typeHard":"Hard","delayLabel":"Verzögerung (sek):","button":"Neustarten"},
+  "wifi":{"title":"Drahtlosnetz","ssidPlaceholder":"Netzwerkname (SSID)","passPlaceholder":"Passwort","saveButton":"Speichern und verbinden","connected":"Verbunden","failed":"Verbindung fehlgeschlagen"},
+  "reboot":{"title":"Neustart","typeLabel":"Typ:","typeSoft":"Sanft","typeHard":"Hart","delayLabel":"Verzögerung (sek):","button":"Neustarten"},
   "alerts":{"selectFile":"Datei auswählen","saved":"Gespeichert","themeSaved":"Thema gespeichert","uploadStarted":"Upload gestartet. Gerät wird nach dem Update neu gestartet.","fileUploaded":"Datei hochgeladen"}
 }

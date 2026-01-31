@@ -1,14 +1,16 @@
 {
   "brand": "WASH-PRO",
-  "nav": {"home":"Forside","tasks":"Opgaver","system":"System","wifi":"Wi‑Fi","reboot":"Genstart"},
-  "info": {"title":"Information","serial":"Serienummer","licenseActive":"Licens aktiv","freeHeap":"Ledig heap","heapSize":"Heap størrelse","userScripts":"Bruger scripts","runningTasks":"Kørende opgaver"},
-  "tasks":{"title":"Opgaver"},
-  "system":{"title":"System","sw":"SW","theme":"Tema","language":"Sprog","fw":"Firmware / Filsystem"},
+  "nav": {"home":"Hjem","tasks":"Opgaver","system":"System","wifi":"Netværk","files":"Filer","update":"Opdater","reboot":"Genstart"},
+  "info": {"title":"Information","serial":"Serienummer","licenseActive":"Licens aktiv","freeHeap":"Fri heap","heapSize":"Heap-størrelse","createdTasks":"Oprettede opgaver","runningTasks":"Kørende opgaver","yes":"Ja","no":"Nej"},
+  "tasks":{"title":"Opgaver","create":"Opret opgave","createPrompt":"Opgavenavn","renamePrompt":"Omdøb opgave","editScript":"Rediger script","attachScript":"Vedhæft script","delete":"Slet","deleteConfirm":"Slet opgave?","scriptFor":"Script til","run":"Kør","runStarted":"Kørsel anmodet","closeEditor":"Luk","stateLabel":"Status","hasScript":"har script","status":{"stopped":"stoppet","running":"kører"}},
+  "system":{"title":"System","sw":"Software","theme":"Udseende","language":"Sprog","fw":"Firmware / Filsystem","licenseKey":"Licensnøgle","licensePlaceholder":"Indtast licensnøgle...","saveLicenseButton":"Gem nøgle"},
   "firmware":{"uploadButton":"Upload firmware (OTA)"},
   "fs":{"uploadButton":"Upload til filsystem"},
+  "files":{"title":"Filhåndtering","name":"Navn","size":"Størrelse","actions":"Handlinger","delete":"Slet","download":"Download","view":"Vis","deleteConfirm":"Slet fil?","noFiles":"Ingen filer fundet."},
+  "update":{"title":"Opdater","autoUpdate":"Automatisk opdatering","firmwareFile":"Firmware-fil","fsFile":"Filsystem-fil"},
   "save":{"button":"Gem"},
   "saveTheme":{"button":"Gem tema"},
-  "wifi":{"title":"Trådløst netværk","ssidPlaceholder":"SSID","passPlaceholder":"Adgangskode","saveButton":"Gem og forbind","connected":"Forbundet","failed":"Forbindelse mislykkedes"},
+  "wifi":{"title":"Trådløst netværk","ssidPlaceholder":"Netværksnavn (SSID)","passPlaceholder":"Adgangskode","saveButton":"Gem og tilslut","connected":"Tilsluttet","failed":"Kunne ikke oprette forbindelse"},
   "reboot":{"title":"Genstart","typeLabel":"Type:","typeSoft":"Blød","typeHard":"Hård","delayLabel":"Forsinkelse (sek):","button":"Genstart"},
   "alerts":{"selectFile":"Vælg fil","saved":"Gemt","themeSaved":"Tema gemt","uploadStarted":"Upload startet. Enheden genstarter efter opdatering.","fileUploaded":"Fil uploadet"}
 }

@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
     document.querySelector('nav ul li[data-page="home"] span').textContent = t.nav?.home || 'Home';
     document.querySelector('nav ul li[data-page="tasks"] span').textContent = t.nav?.tasks || 'Tasks';
     document.querySelector('nav ul li[data-page="system"] span').textContent = t.nav?.system || 'System';
-    document.querySelector('nav ul li[data-page="wifi"] span').textContent = t.nav?.wifi || 'Wi‑Fi';
+    document.querySelector('nav ul li[data-page="wifi"] span').textContent = t.nav?.wifi || 'Wi-Fi';
     document.querySelector('nav ul li[data-page="files"] span').textContent = t.nav?.files || 'File Manager';
     document.querySelector('nav ul li[data-page="update"] span').textContent = t.nav?.update || 'Update';
     document.querySelector('nav ul li[data-page="reboot"] span').textContent = t.nav?.reboot || 'Reboot';
@@ -112,17 +112,18 @@ document.addEventListener('DOMContentLoaded', ()=>{
     document.getElementById('infoTitle').textContent = t.info?.title || 'Information';
     document.getElementById('tasksTitle').textContent = t.tasks?.title || 'Tasks';
     document.getElementById('systemTitle').textContent = t.system?.title || 'System';
-    document.getElementById('filesTitle').textContent = t.files?.title || 'File Manager';
+    // filesTitle is set dynamically in loadFiles()
     document.getElementById('updateTitle').textContent = t.update?.title || 'Update';
     document.getElementById('wifiTitle').textContent = t.wifi?.title || 'Wireless network';
     document.getElementById('langTitle').textContent = t.system?.language || 'Language';
     document.getElementById('licenseTitle').textContent = t.system?.licenseKey || 'License Key';
     document.getElementById('rebootTitle').textContent = t.reboot?.title || 'Reboot';
+    document.getElementById('autoUpdateLabel').textContent = t.update?.autoUpdate || 'Automatic update';
     document.getElementById('themeTitle').textContent = t.system?.theme || 'Appearance';
 
     document.getElementById('licenseKey').placeholder = t.system?.licensePlaceholder || 'Enter license key...';
     document.getElementById('saveLicenseBtn').querySelector('.btn-text').textContent = t.system?.saveLicenseButton || 'Save Key';
-    document.getElementById('createTaskBtn').querySelector('.btn-text').textContent = t.tasks?.create || 'Create task';
+    document.getElementById('createTaskBtn').querySelector('.btn-text').textContent = t.tasks?.create || 'Create Task';
     document.getElementById('createTaskBtn').title = t.tasks?.create || 'Create task';
     document.getElementById('uploadFirmwareBtn').querySelector('.btn-text').textContent = t.firmware?.uploadButton || 'Upload firmware (OTA)';
     document.getElementById('uploadFSBtn').querySelector('.btn-text').textContent = t.fs?.uploadButton || 'Upload to filesystem';
@@ -137,15 +138,22 @@ document.addEventListener('DOMContentLoaded', ()=>{
     const ssidLabel = document.querySelector('#wifiForm label[for="ssidInput"]'); if (ssidLabel) ssidLabel.textContent = t.wifi?.ssidPlaceholder || 'SSID';
     const pass = document.querySelector('#wifiForm input[name="pass"]'); if (pass) pass.placeholder = t.wifi?.passPlaceholder || 'Password';
     const passLabel = document.querySelector('#wifiForm label[for="passInput"]'); if (passLabel) passLabel.textContent = t.wifi?.passPlaceholder || 'Password';
-    const firmwareLabel = document.querySelector('#uploadFirmware label[for="firmwareFile"]'); if (firmwareLabel) firmwareLabel.textContent = t.firmware?.uploadButton || 'Firmware file';
-    const fsLabel = document.querySelector('#uploadFS label[for="fsFile"]'); if (fsLabel) fsLabel.textContent = t.fs?.uploadButton || 'Filesystem file';
+    const firmwareLabel = document.querySelector('#uploadFirmware label[for="firmwareFile"]'); if (firmwareLabel) firmwareLabel.textContent = t.update?.firmwareFile || 'Firmware file';
+    const fsLabel = document.querySelector('#uploadFS label[for="fsFile"]'); if (fsLabel) fsLabel.textContent = t.update?.fsFile || 'Filesystem file';
 
     const rtype = document.getElementById('rebootTypeLabel'); if (rtype) rtype.textContent = t.reboot?.typeLabel || 'Type:';
     const rdelay = document.getElementById('rebootDelayLabel'); if (rdelay) rdelay.textContent = t.reboot?.delayLabel || 'Delay (sec):';
     const typeSel = document.querySelector('#rebootForm select[name="type"]');
     if (typeSel && typeSel.options.length > 1){ typeSel.options[0].textContent = t.reboot?.typeSoft || 'Soft'; typeSel.options[1].textContent = t.reboot?.typeHard || 'Hard'; }
 
-    if (document.getElementById('home').classList.contains('active')) loadInfo().catch(e => console.error(e));
+    // If home page is active, reload its content with new translations
+    if (document.getElementById('home').classList.contains('active')) {
+      loadInfo(t.info).catch(e => console.error(e));
+    }
+    // Update the main header title with the translation for the currently active page
+    const activeLi = document.querySelector('.sidebar ul li.active span');
+    if (activeLi) document.getElementById('title').innerText = activeLi.innerText;
+
     if (document.getElementById('system').classList.contains('active')) loadSystem().catch(e => console.error(e));
     if (document.getElementById('files').classList.contains('active')) loadFiles().catch(e => console.error(e));
   }
@@ -161,17 +169,18 @@ document.addEventListener('DOMContentLoaded', ()=>{
     });
   }
 
-  async function loadInfo(){
+  async function loadInfo(translations){
     try {
       const [infoRes, tasksRes] = await Promise.all([fetch('/api/info'), fetch('/api/tasks')]);
       const j = await infoRes.json();
       const tasks = await tasksRes.json();
       const tasksArr = (tasks && tasks.tasks) ? tasks.tasks : (Array.isArray(tasks) ? tasks : []);
       const runningTasksCount = tasksArr.filter(t => t.state === 'running').length;
-      const t = TRANSLATIONS.info || {};
+      const t = translations || TRANSLATIONS.info || {};
+      document.getElementById('info').classList.add('loaded');
       document.getElementById('info').innerHTML = `<table>
         <tr><td>${t.serial || 'Serial'}</td><td>${j.serial || ''}</td></tr>
-        <tr><td>${t.licenseActive || 'License active'}</td><td>${j.licenseActive ? 'Yes' : 'No'}</td></tr>
+        <tr><td>${t.licenseActive || 'License active'}</td><td>${j.licenseActive ? (t.yes || 'Yes') : (t.no || 'No')}</td></tr>
         <tr><td>${t.freeHeap || 'Free heap'}</td><td>${j.freeHeap || ''}</td></tr>
         <tr><td>${t.heapSize || 'Heap size'}</td><td>${j.heapSize || ''}</td></tr>
         <tr><td>${t.createdTasks || 'Created tasks'}</td><td>${tasksArr.length}</td></tr>
@@ -186,6 +195,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
       const theme = j.theme || 'gp_light';
       document.getElementById('language').value = lang;
       const themeLink = document.getElementById('theme'); if (themeLink) themeLink.href = `/themes/${theme}.css`;
+      document.getElementById('autoUpdateCheckbox').checked = j.autoUpdate || false;
       document.getElementById('licenseKey').value = j.licenseKey || '';
       const sel = document.getElementById('themeSelect'); if (sel) sel.value = theme;
 
@@ -257,7 +267,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
         // Rename Button
         const renameBtn = document.createElement('button');
-        renameBtn.className = 'task-action-btn'; // This should be file-action-btn or similar to avoid mobile icon logic
+        renameBtn.className = 'file-action-btn';
         renameBtn.title = 'Rename';
         renameBtn.innerHTML = '<i class="fas fa-pencil"></i>';
         renameBtn.onclick = async () => {
@@ -273,7 +283,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
         const ext = file.name.split('.').pop().toLowerCase();
         if (!file.isDir && TEXT_EXTENSIONS.includes(ext)) {
           const editBtn = document.createElement('button');
-          editBtn.className = 'task-action-btn'; // This should be file-action-btn or similar to avoid mobile icon logic
+          editBtn.className = 'file-action-btn';
           editBtn.title = 'Edit';
           editBtn.innerHTML = '<i class="fas fa-file-alt"></i>';
           editBtn.onclick = () => openFileEditor(fullPath);
@@ -282,7 +292,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
         // Delete Button
         const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'task-action-btn'; // This should be file-action-btn or similar to avoid mobile icon logic
+        deleteBtn.className = 'file-action-btn';
         deleteBtn.title = TRANSLATIONS.files?.delete || 'Delete';
         deleteBtn.innerHTML = '<i class="fas fa-trash-can"></i>';
         deleteBtn.onclick = async () => {
@@ -329,7 +339,10 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
           const info = document.createElement('div'); info.className = 'task-info';
           const title = document.createElement('div'); title.textContent = t.name; title.style.fontWeight='700';
-          const meta = document.createElement('div'); meta.textContent = `State: ${t.state || ''} ${t.hasScript ? ' • has script' : ''}`;
+          const meta = document.createElement('div');
+          const stateStr = t.state || 'unknown';
+          const translatedState = TRANSLATIONS.tasks?.status?.[stateStr] || stateStr;
+          meta.textContent = `${TRANSLATIONS.tasks?.stateLabel || 'State'}: ${translatedState}${t.hasScript ? ` • ${TRANSLATIONS.tasks?.hasScript || 'has script'}` : ''}`;
           info.appendChild(title); info.appendChild(meta);
           const actions = document.createElement('div'); actions.className='task-actions';
           // helper to create an icon+label button
@@ -366,7 +379,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
             const response = await fetch('/api/tasks/run', { method:'POST', body: new URLSearchParams({id: t.id}) }); 
             if (response.ok) {
               // Optimistically update the UI immediately
-              meta.textContent = `State: running ${t.hasScript ? ' • has script' : ''}`;
+              const runningState = TRANSLATIONS.tasks?.status?.running || 'running';
+              meta.textContent = `${TRANSLATIONS.tasks?.stateLabel || 'State'}: ${runningState}${t.hasScript ? ` • ${TRANSLATIONS.tasks?.hasScript || 'has script'}` : ''}`;
               alert(TRANSLATIONS.tasks?.runStarted || 'Run requested');
             } else {
               alert('Failed to start task.');
@@ -529,4 +543,9 @@ document.addEventListener('DOMContentLoaded', ()=>{
       }
     }catch(err){ console.warn('Error saving theme', err); loadSystem(); if (link && prev) link.href = prev; }
   });
+});
+
+document.getElementById('autoUpdateCheckbox')?.addEventListener('change', async (e) => {
+  const enabled = e.target.checked;
+  await fetch('/api/autoupdate', { method: 'POST', body: new URLSearchParams({ enabled: enabled }) });
 });
