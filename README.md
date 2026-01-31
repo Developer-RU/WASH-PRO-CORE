@@ -1,8 +1,8 @@
 # WASH-PRO-CORE
 
 <p>
-  <img src="docs/badges/version.svg" alt="Version 1.0.0">
-  <img src="docs/badges/license.svg" alt="License MIT">
+  <img src="version.svg" alt="Version 1.0.0">
+  <img src="license.svg" alt="License MIT">
 </p>
 
 ## Обзор проекта
