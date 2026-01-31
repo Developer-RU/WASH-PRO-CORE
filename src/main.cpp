@@ -74,156 +74,41 @@ void setup() {
     request->send(200, "application/json", tasks.getTasksJSON());
   });
 
-  // Create or update task (add diagnostics) with JSON/raw-body fallback
-  server.on("/api/tasks", HTTP_POST,
-    [](AsyncWebServerRequest *request){
-      bool hasName = request->hasParam("name", true);
-      Serial.printf("/api/tasks POST called: hasName=%d contentLen=%u ctype=%s\n", hasName, request->contentLength(), request->contentType().c_str());
-      String name = "";
-      String id = "";
+  // Unified handler for creating, renaming, and saving scripts for tasks
+  server.on("/api/tasks", HTTP_POST, [](AsyncWebServerRequest *request){
+    String id = request->hasParam("id", true) ? request->getParam("id", true)->value() : "";
+    String name = request->hasParam("name", true) ? request->getParam("name", true)->value() : "";
+    String script = request->hasParam("script", true) ? request->getParam("script", true)->value() : "";
 
-      if (hasName) {
-        name = request->getParam("name", true)->value();
-        if (request->hasParam("id", true)) id = request->getParam("id", true)->value();
-      } else if (request->contentLength()>0) {
-        // try buffered body (populated by onBody) - supports JSON payloads
-        uint32_t key = (uint32_t)request;
-        if (requestBodies.count(key)) {
-          String body = requestBodies[key];
-          requestBodies.erase(key);
-          Serial.printf("/api/tasks POST using buffered body len=%u\n", body.length());
-          if (request->contentType().startsWith("application/json")) {
-            DynamicJsonDocument doc(2048);
-            auto err = deserializeJson(doc, body);
-            if (!err) {
-              if (!doc["name"].isNull()) name = String((const char*)doc["name"]);
-              if (!doc["id"].isNull()) id = String((const char*)doc["id"]);
-            } else {
-              Serial.printf("Failed to parse JSON body for /api/tasks: %s\n", err.c_str());
-            }
-          } else {
-            // not JSON - attempt to extract name parameter naively (urlencoded fallback)
-            int n = body.indexOf("name=");
-            if (n >= 0) {
-              int amp = body.indexOf('&', n);
-              String v = (amp>n) ? body.substring(n+5, amp) : body.substring(n+5);
-              name = v; // may be percent-encoded
-            }
-            int ni = body.indexOf("id=");
-            if (ni >= 0) {
-              int amp2 = body.indexOf('&', ni);
-              String v2 = (amp2>ni) ? body.substring(ni+3, amp2) : body.substring(ni+3);
-              id = v2;
-            }
-          }
-        }
+    // Logic: if 'script' is present, we are saving a script. Otherwise, creating/renaming.
+    if (request->hasParam("script", true)) { // This is a script save operation
+      if (id.length() == 0) {
+        request->send(400, "application/json", "{\"error\":\"missing id for script save\"}");
+        return;
       }
-
-      if (name.length()) {
-        if (id.length()) {
-          Serial.printf("Update task id=%s name=%s\n", id.c_str(), name.c_str());
-          // update existing task file
-          String tpath = String("/tasks/") + id + ".json";
-          if (LittleFS.exists(tpath)) {
-            File tf = LittleFS.open(tpath, FILE_READ);
-            if (tf) {
-              String s = tf.readString(); tf.close();
-              DynamicJsonDocument doc(1024);
-              deserializeJson(doc, s);
-              doc["name"] = name;
-              String out; serializeJson(doc, out);
-              File tfw = LittleFS.open(tpath, FILE_WRITE);
-              if (tfw) { tfw.print(out); tfw.close(); request->send(200, "application/json", out); return; }
-            }
-          }
-          request->send(404, "application/json", "{\"error\":\"not found\"}");
-          return;
-        }
-        Serial.printf("Create task name=%s\n", name.c_str());
-        String newid = tasks.createTask(name);
-        String tjson = tasks.getTaskJSON(newid);
-        if (tjson.length()) request->send(200, "application/json", tjson);
-        else request->send(500, "application/json", "{\"error\":\"failed\"}");
+      Serial.printf("Saving script for id=%s, name=%s, script_len=%u\n", id.c_str(), name.c_str(), script.length());
+      bool ok = tasks.saveScript(id, name, script); // name might be empty if only script is updated
+      request->send(ok ? 200 : 500, "application/json", ok ? "{\"ok\":true}" : "{\"error\":\"failed to save script\"}");
+    } else if (name.length() > 0) { // This is a create or rename operation
+      if (id.length() > 0) {
+        // This is a rename operation
+        Serial.printf("Renaming task id=%s to name=%s\n", id.c_str(), name.c_str());
+        bool ok = tasks.saveScript(id, name, ""); // Use saveScript to update name, with empty script content
+        request->send(ok ? 200 : 404, "application/json", ok ? "{\"ok\":true}" : "{\"error\":\"not found\"}");
       } else {
-        // give more diagnostics when possible
-        String detail = "no name";
-        if (request->contentLength()>0) detail = String("body length=") + request->contentLength() + " ctype=" + request->contentType();
-        request->send(400, "application/json", String("{\"error\":\"no name\",\"detail\":\"") + detail + "\"}");
-      }
-    },
-    NULL,
-    // onBody: buffer raw body so JSON can be parsed in the handler
-    [](AsyncWebServerRequest* request, uint8_t *data, size_t len, size_t index, size_t total){
-      uint32_t key = (uint32_t)request;
-      if (index==0) requestBodies[key] = "";
-      requestBodies[key].concat((const char*)data, len);
-      Serial.printf("/api/tasks onBody index=%u len=%u total=%u\n", index, len, total);
-    }
-  );
-
-  // Save script for task with robust multi-part/JSON/raw body support
-  server.on("/api/tasks/script", HTTP_POST,
-    [](AsyncWebServerRequest *request){
-      bool hasId = request->hasParam("id", true) || request->hasParam("id");
-      bool hasScript = request->hasParam("script", true) || request->hasParam("script");
-      Serial.printf("/api/tasks/script called: hasId=%d hasScript=%d contentLen=%u ctype=%s\n", hasId, hasScript, request->contentLength(), request->contentType().c_str());
-
-      String id;
-      String script;
-
-      if (hasId) {
-        if (request->hasParam("id", true)) id = request->getParam("id", true)->value();
-        else id = request->getParam("id")->value();
-      }
-
-      if (hasScript) {
-        if (request->hasParam("script", true)) script = request->getParam("script", true)->value();
-        else script = request->getParam("script")->value();
-        Serial.printf("Received param script length=%u\n", script.length());
-      } else {
-        // fallback to buffered body (from onBody) if present
-        uint32_t key = (uint32_t)request;
-        if (requestBodies.count(key)) {
-          script = requestBodies[key];
-          Serial.printf("Using buffered body length=%u\n", script.length());
-          requestBodies.erase(key);
-        } else if (request->contentLength()>0) {
-          Serial.println("Attempting to read raw body as script");
-          String raw;
-          if (request->hasParam("plain", true)) raw = request->getParam("plain", true)->value();
-          else raw = request->arg((size_t)0);
-          Serial.printf("Raw body length=%u\n", raw.length());
-          // If JSON, parse id/script fields
-          if (raw.startsWith("{")) {
-            DynamicJsonDocument doc(8192);
-            auto err = deserializeJson(doc, raw);
-            if (!err) {
-              if (!doc["id"].isNull()) id = String((const char*)doc["id"]);
-              if (!doc["script"].isNull()) script = String((const char*)doc["script"]);
-            }
-          } else {
-            script = raw;
-          }
+        // This is a create operation
+        Serial.printf("Creating task name=%s\n", name.c_str());
+        String newId = tasks.createTask(name);
+        if (newId.length() > 0) {
+          request->send(200, "application/json", tasks.getTaskJSON(newId));
+        } else {
+          request->send(500, "application/json", "{\"error\":\"failed to create task\"}");
         }
       }
-
-      if (id.length()==0) { Serial.println("No id provided"); request->send(400,"application/json","{\"error\":\"missing id\"}"); return; }
-      if (script.length()==0){ Serial.println("No script content provided"); request->send(400,"application/json","{\"error\":\"empty script\"}"); return; }
-
-      Serial.printf("Saving script for %s length=%u\n", id.c_str(), script.length());
-      bool ok = tasks.saveScript(id, "", script);
-      if (ok) request->send(200, "application/json", "{\"ok\":true}");
-      else request->send(500, "application/json", "{\"error\":\"failed to write\"}");
-    },
-    NULL,
-    // onBody callback: accumulate body chunks into requestBodies map
-    [](AsyncWebServerRequest* request, uint8_t *data, size_t len, size_t index, size_t total){
-      uint32_t key = (uint32_t)request;
-      if (index==0) requestBodies[key] = "";
-      requestBodies[key].concat((const char*)data, len);
-      Serial.printf("/api/tasks/script onBody index=%u len=%u total=%u\n", index, len, total);
+    } else { // Neither name nor script provided
+      request->send(400, "application/json", "{\"error\":\"no name or script provided\"}");
     }
-  );
+  });
 
   // Get script content (query param: id)
   server.on("/api/tasks/script", HTTP_GET, [](AsyncWebServerRequest *request){
@@ -240,8 +125,8 @@ void setup() {
   server.on("/api/tasks/delete", HTTP_POST, [](AsyncWebServerRequest *request){
     if (request->hasParam("id", true)) {
       String id = request->getParam("id", true)->value();
-      tasks.deleteTask(id);
-      request->send(200, "application/json", "{\"ok\":true}");
+      bool ok = tasks.deleteTask(id);
+      request->send(ok ? 200 : 500, "application/json", ok ? "{\"ok\":true}" : "{\"error\":\"failed to delete\"}");
     } else {
       request->send(400, "application/json", "{\"error\":\"missing id\"}");
     }
@@ -251,7 +136,6 @@ void setup() {
   server.on("/api/tasks/run", HTTP_POST, [](AsyncWebServerRequest *request){
     if (request->hasParam("id", true)) {
       String id = request->getParam("id", true)->value();
-      Serial.printf("Run requested for task: %s\n", id.c_str());
       bool ok = tasks.runTask(id);
       request->send(ok ? 200 : 500, "application/json", ok ? "{\"ok\":true}" : "{\"error\":\"failed to run\"}");
     } else {
@@ -262,6 +146,104 @@ void setup() {
   // Built-in functions list for editor hints
   server.on("/api/builtins", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(200, "application/json", "[\"log\",\"setLED\",\"delay\",\"startTask\",\"stopTask\"]");
+  });
+
+  // Helper function to recursively delete a directory
+  std::function<void(String)> deleteRecursive = 
+    [&](String path) {
+      File root = LittleFS.open(path);
+      if (!root || !root.isDirectory()) {
+        return;
+      }
+      File file = root.openNextFile();
+      while(file){
+          String entryPath = String(file.name()); // file.name() returns the full path
+          if(file.isDirectory()){
+              deleteRecursive(entryPath);
+          } else {
+              LittleFS.remove(entryPath);
+          }
+          file.close(); // Ensure file handle is closed
+          file = root.openNextFile();
+      }
+      LittleFS.rmdir(path);
+  };
+
+  server.on("/api/files", HTTP_GET, [](AsyncWebServerRequest *request){
+    String path = "/";
+    if (request->hasParam("path")) {
+      path = request->arg("path");
+    }
+    if (!path.startsWith("/")) {
+      path = "/" + path;
+    }
+
+    DynamicJsonDocument doc(4096);
+    doc["path"] = path;
+    JsonArray files = doc.createNestedArray("files");
+    File root = LittleFS.open(path);
+    if(root && root.isDirectory()){
+        File file = root.openNextFile();
+        while(file){
+            JsonObject fileObj = files.createNestedObject();
+            String fullPath = String(file.name());
+            fileObj["name"] = fullPath.substring(fullPath.lastIndexOf('/') + 1);
+            fileObj["size"] = file.size();
+            fileObj["isDir"] = file.isDirectory();
+            file = root.openNextFile();
+        }
+        root.close();
+    }
+    String out; serializeJson(doc, out);
+    request->send(200, "application/json", out);
+  });
+
+  server.on("/api/files/delete", HTTP_POST, [deleteRecursive](AsyncWebServerRequest *request){
+    if (request->hasParam("path", true)) {
+      String path = request->getParam("path", true)->value();
+      if (path.startsWith("/") && LittleFS.exists(path)) {
+        File f = LittleFS.open(path);
+        if (f.isDirectory()) deleteRecursive(path);
+        else LittleFS.remove(path);
+        request->send(200, "application/json", "{\"ok\":true}");
+      } else {
+        request->send(404, "application/json", "{\"error\":\"failed to remove\"}");
+      }
+    } else {
+      request->send(400, "application/json", "{\"error\":\"missing path\"}");
+    }
+  });
+
+  server.on("/api/files/rename", HTTP_POST, [](AsyncWebServerRequest *request){
+    if (request->hasParam("path", true) && request->hasParam("newName", true)) {
+      String path = request->getParam("path", true)->value();
+      String newName = request->getParam("newName", true)->value();
+      String parentPath = path.substring(0, path.lastIndexOf('/'));
+      String newPath = parentPath + "/" + newName;
+      if (LittleFS.rename(path, newPath)) {
+        request->send(200, "application/json", "{\"ok\":true}");
+      } else {
+        request->send(500, "application/json", "{\"error\":\"rename failed\"}");
+      }
+    } else {
+      request->send(400, "application/json", "{\"error\":\"missing params\"}");
+    }
+  });
+
+  server.on("/api/files/save", HTTP_POST, [](AsyncWebServerRequest *request){
+    if (request->hasParam("path", true) && request->hasParam("content", true)) {
+      String path = request->getParam("path", true)->value();
+      String content = request->getParam("content", true)->value();
+      File f = LittleFS.open(path, FILE_WRITE);
+      if (f && f.print(content)) {
+        f.close();
+        request->send(200, "application/json", "{\"ok\":true}");
+      } else {
+        request->send(500, "application/json", "{\"error\":\"write failed\"}");
+      }
+    } else {
+      request->send(400, "application/json", "{\"error\":\"missing params\"}");
+    }
   });
 
   server.on("/api/system", HTTP_GET, [](AsyncWebServerRequest *request){
@@ -340,8 +322,6 @@ void setup() {
     sys.scheduleReboot(delaySec, graceful);
     request->send(200, "application/json", "{\"ok\":true}");
   });
-
-  server.onNotFound(notFound);
 
   server.begin();
 }

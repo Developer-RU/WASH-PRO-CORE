@@ -24,10 +24,13 @@ String SystemManager::getInfoJSON() {
   if (LittleFS.exists("/scripts")) {
     File root = LittleFS.open("/scripts");
     if (root && root.isDirectory()) {
-      File file = root.openNextFile();
-      while (file) {
+      while (true) {
+        File file = root.openNextFile();
+        if (!file) { // No more files
+          break;
+        }
         if (!file.isDirectory()) scriptCount++;
-        file = root.openNextFile();
+        file.close(); // Explicitly close the file handle
       }
       root.close();
     }
@@ -88,10 +91,16 @@ void SystemManager::handleOTAUpload(AsyncWebServerRequest *request, String filen
 
 void SystemManager::handleFSUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
   if (index == 0) {
-    Serial.printf("FS Upload Start: %s\n", filename.c_str());
-    // ensure path exists
+    String path = "/";
+    if (request->hasParam("path")) {
+      path = request->getParam("path")->value();
+    }
+    if (!path.endsWith("/")) {
+      path += "/";
+    }
+    Serial.printf("FS Upload Start: %s to %s\n", filename.c_str(), path.c_str());
   }
-  String path = String("/") + filename;
+  String path = request->getParam("path")->value() + "/" + filename;
   File f;
   if (index == 0) {
     f = LittleFS.open(path, FILE_WRITE);

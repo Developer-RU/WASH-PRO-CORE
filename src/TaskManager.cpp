@@ -113,9 +113,29 @@ String TaskManager::getScript(const String &id) {
 bool TaskManager::deleteTask(const String &id) {
   String tpath = String("/tasks/") + id + ".json";
   String spath = String("/scripts/") + id + ".lua";
-  if (LittleFS.exists(tpath)) LittleFS.remove(tpath);
-  if (LittleFS.exists(spath)) LittleFS.remove(spath);
-  return true;
+
+  Serial.printf("--- Deleting Task ID: %s ---\n", id.c_str());
+
+  bool taskJsonRemoved = false;
+  if (LittleFS.exists(tpath)) {
+    taskJsonRemoved = LittleFS.remove(tpath);
+    Serial.printf("  > Deleting task file '%s'... %s\n", tpath.c_str(), taskJsonRemoved ? "SUCCESS" : "FAILED");
+  } else {
+    Serial.printf("  > Task file '%s' not found, skipping.\n", tpath.c_str());
+  }
+
+  bool scriptRemoved = false;
+  if (LittleFS.exists(spath)) {
+    scriptRemoved = LittleFS.remove(spath);
+    Serial.printf("  > Deleting script file '%s'... %s\n", spath.c_str(), scriptRemoved ? "SUCCESS" : "FAILED");
+  } else {
+    Serial.printf("  > Script file '%s' not found, skipping.\n", spath.c_str());
+  }
+
+  bool finalTaskExists = LittleFS.exists(tpath);
+  bool finalScriptExists = LittleFS.exists(spath);
+  Serial.printf("  > Final check: Task file exists: %s, Script file exists: %s\n", finalTaskExists ? "yes" : "no", finalScriptExists ? "yes" : "no");
+  return !finalTaskExists && !finalScriptExists; // Return true only if both are truly gone
 }
 
 String TaskManager::getTaskJSON(const String &id) {
@@ -134,17 +154,21 @@ String TaskManager::getTasksJSON() {
   File root = LittleFS.open("/tasks");
   if (root && root.isDirectory()) {
     File file = root.openNextFile();
-    while (file) {
+    while(file){
       if (!file.isDirectory()) {
-        String content = file.readString();
         DynamicJsonDocument tdoc(1024);
-        deserializeJson(tdoc, content);
+        DeserializationError error = deserializeJson(tdoc, file);
+        if (error) {
+          Serial.printf("Failed to parse task JSON from stream: %s\n", file.name());
+        } else {
         JsonObject obj = arr.createNestedObject();
         obj["id"] = String((const char*)tdoc["id"]);
         obj["name"] = String((const char*)tdoc["name"]);
         obj["state"] = String((const char*)tdoc["state"]);
         obj["hasScript"] = tdoc.containsKey("hasScript") && tdoc["hasScript"].as<bool>();
+        }
       }
+      file.close(); // Ensure file is closed before opening the next one
       file = root.openNextFile();
     }
     root.close();
