@@ -12,6 +12,10 @@
 
 **WASH-PRO-CORE** is an embedded system based on ESP32 with a multifunctional web interface for managing tasks, files, and system settings. The project is designed with a focus on flexibility, ease of use, and extensibility.
 
+> [!IMPORTANT]
+> **This project is under active development.**
+> It is being created as an open-source alternative firmware for WASH-PRO controllers and is provided "as-is" without any guarantees. We encourage community participation and welcome developers to use this project as a foundation for their own custom firmware.
+
 ### Key Features
 
 - **Default Access Point:** The device starts in Access Point (AP) mode with the SSID `WASH-PRO-CORE-xxxx` for initial setup.
@@ -84,4 +88,3 @@ A modern, responsive UI with a sidebar menu that displays correctly on both desk
     ```sh
     pio run --target uploadfs
     ```
-
