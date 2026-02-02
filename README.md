@@ -2,7 +2,7 @@
 
 # WASH-PRO-CORE
 
-[![Version: 1.0.0](images/version.svg)](https://github.com/Developer-RU/WASH-PRO-CORE/releases/tag/1.0.0)
+[![Version: 1.0.0](images/version.svg)](https://github.com/Developer-RU/WASH-PRO-CORE/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE.md)
 
 ## Project Overview
