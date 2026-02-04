@@ -179,6 +179,7 @@ void setup() {
         file.close(); // Ensure file handle is closed
         file = root.openNextFile();
       }
+      root.close();
       LittleFS.rmdir(path);
   };
 
@@ -220,7 +221,9 @@ void setup() {
       if (path.startsWith("/") && LittleFS.exists(path)) {
         File f = LittleFS.open(path);
         if (!f) { request->send(500, "application/json", "{\"error\":\"failed to open path\"}"); return; }
-        if (f.isDirectory()) deleteRecursive(path);
+        bool isDir = f.isDirectory();
+        f.close();
+        if (isDir) deleteRecursive(path);
         else LittleFS.remove(path);
         request->send(200, "application/json", "{\"ok\":true}");
       } else {

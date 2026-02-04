@@ -235,16 +235,15 @@ String TaskManager::getTasksJSON() {
         DeserializationError error = deserializeJson(tdoc, file);
         if (error) {
           Serial.printf("Failed to parse task JSON from stream: %s\n", file.name());
-          file.close();
-          continue;
+        } else {
+          const char* state = tdoc["state"] | "stopped";
+          if (state && strcmp(state, "running") == 0) runningCount++;
+          JsonObject obj = arr.createNestedObject();
+          obj["id"] = tdoc["id"].as<String>();
+          obj["name"] = tdoc["name"].as<String>();
+          obj["state"] = String(state);
+          obj["hasScript"] = tdoc.containsKey("hasScript") && tdoc["hasScript"].as<bool>();
         }
-        const char* state = tdoc["state"] | "stopped";
-        if (state && strcmp(state, "running") == 0) runningCount++;
-        JsonObject obj = arr.createNestedObject();
-        obj["id"] = tdoc["id"].as<String>();
-        obj["name"] = tdoc["name"].as<String>();
-        obj["state"] = String(state);
-        obj["hasScript"] = tdoc.containsKey("hasScript") && tdoc["hasScript"].as<bool>();
       }
       file.close();
       file = root.openNextFile();
