@@ -68,6 +68,21 @@ void setup() {
     request->send(200, "application/json", tasks.getTasksJSON());
   });
 
+  // API endpoint to get a single task with its script (task gives out the script).
+  server.on("/api/tasks/task", HTTP_GET, [](AsyncWebServerRequest *request){
+    if (request->hasParam("id")) {
+      String id = request->getParam("id")->value();
+      String json = tasks.getTaskWithScriptJSON(id);
+      if (json.length() > 0) {
+        request->send(200, "application/json", json);
+      } else {
+        request->send(404, "application/json", "{\"error\":\"task not found\"}");
+      }
+    } else {
+      request->send(400, "application/json", "{\"error\":\"missing id\"}");
+    }
+  });
+
   // API endpoint to handle creating, renaming, and saving scripts for tasks.
   server.on("/api/tasks", HTTP_POST, [](AsyncWebServerRequest *request){
     String id = request->hasParam("id", true) ? request->getParam("id", true)->value() : "";
@@ -204,6 +219,7 @@ void setup() {
       String path = request->getParam("path", true)->value();
       if (path.startsWith("/") && LittleFS.exists(path)) {
         File f = LittleFS.open(path);
+        if (!f) { request->send(500, "application/json", "{\"error\":\"failed to open path\"}"); return; }
         if (f.isDirectory()) deleteRecursive(path);
         else LittleFS.remove(path);
         request->send(200, "application/json", "{\"ok\":true}");
@@ -334,9 +350,9 @@ void setup() {
         tries++;
       }
       if (WiFi.status() == WL_CONNECTED) {
-        request->send(200, "application/json", "{\"ok\":true}\n");
+        request->send(200, "application/json", "{\"ok\":true}");
       } else {
-        request->send(200, "application/json", "{\"ok\":false}\n");
+        request->send(500, "application/json", "{\"error\":\"connection failed\"}");
       }
     } else {
       request->send(400, "application/json", "{\"error\":\"missing params\"}");

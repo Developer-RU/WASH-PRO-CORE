@@ -38,15 +38,13 @@ String SystemManager::getInfoJSON() {
   if (LittleFS.exists("/scripts")) {
     File root = LittleFS.open("/scripts");
     if (root && root.isDirectory()) {
-      while (true) {
-        File file = root.openNextFile();
-        if (!file) { // No more files
-          break;
-        }
+      File file = root.openNextFile();
+      while (file) {
         if (!file.isDirectory()) {
           scriptCount++;
         }
-        file.close(); // Explicitly close the file handle
+        file.close();
+        file = root.openNextFile();
       }
       root.close();
     }

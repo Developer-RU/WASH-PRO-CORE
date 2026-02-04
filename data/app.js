@@ -312,6 +312,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
   let currentEditingFile = null;
   async function openFileEditor(filePath) {
+    currentEditingTask = null;
     currentEditingFile = filePath;
     document.getElementById('editorTitle').textContent = `Edit: ${filePath}`;
     document.getElementById('scriptContent').value = 'Loading...';
@@ -358,25 +359,32 @@ document.addEventListener('DOMContentLoaded', ()=>{
   
           // 1. Edit Task button (rename)
           const renameLabel = TRANSLATIONS.tasks?.renamePrompt || 'Rename task';
+          const taskId = String(t.id);
           const editTaskBtn = makeAction('<i class="fas fa-pencil"></i>', renameLabel, async ()=>{
             const newName = prompt(renameLabel, t.name);
             if (!newName || newName === t.name) return;
-            const r = await fetch('/api/tasks', { method:'POST', body: new URLSearchParams({name:newName, id:t.id}) });
+            const r = await fetch('/api/tasks', { method:'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: new URLSearchParams({ name: newName, id: taskId }) });
             if (r.ok) loadTasksEnhanced();
+            else { const err = await r.text(); console.error('Rename failed:', r.status, err); alert('Rename failed: ' + (err || r.status)); }
           });
   
           // 2. Edit Script button
           const scriptLabel = t.hasScript? (TRANSLATIONS.tasks?.editScript||'Edit script') : (TRANSLATIONS.tasks?.attachScript||'Attach script');
-          const scriptBtn = makeAction('<i class="fas fa-file-alt"></i>', scriptLabel, ()=>{ openScriptEditor(t.id, t.name); });
+          const scriptBtn = makeAction('<i class="fas fa-file-alt"></i>', scriptLabel, ()=>{ openScriptEditor(taskId, t.name); });
   
           // 3. Delete button (deletes both task and script)
           const delLabel = TRANSLATIONS.tasks?.delete || 'Delete';
-          const delBtn = makeAction('<i class="fas fa-trash-can"></i>', delLabel, async ()=>{ if (!confirm(TRANSLATIONS.tasks?.deleteConfirm || 'Delete task?')) return; await fetch('/api/tasks/delete', { method:'POST', body: new URLSearchParams({id:t.id}) }); loadTasksEnhanced(); });
+          const delBtn = makeAction('<i class="fas fa-trash-can"></i>', delLabel, async ()=>{
+            if (!confirm(TRANSLATIONS.tasks?.deleteConfirm || 'Delete task?')) return;
+            const r = await fetch('/api/tasks/delete', { method:'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: new URLSearchParams({ id: taskId }) });
+            if (r.ok) loadTasksEnhanced();
+            else { const err = await r.text(); console.error('Delete failed:', r.status, err); alert('Delete failed: ' + (err || r.status)); }
+          });
   
           // 4. Run button
           const runLabel = TRANSLATIONS.tasks?.run || 'Run';
           const runBtn = makeAction('<i class="fas fa-play"></i>', runLabel, async ()=>{ 
-            const response = await fetch('/api/tasks/run', { method:'POST', body: new URLSearchParams({id: t.id}) }); 
+            const response = await fetch('/api/tasks/run', { method:'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: new URLSearchParams({ id: taskId }) }); 
             if (response.ok) {
               // Optimistically update the UI immediately
               const runningState = TRANSLATIONS.tasks?.status?.running || 'running';
@@ -396,26 +404,60 @@ document.addEventListener('DOMContentLoaded', ()=>{
   // Create task button
   document.getElementById('createTaskBtn')?.addEventListener('click', async ()=>{
     const name = prompt(TRANSLATIONS.tasks?.createPrompt || 'Task name'); if (!name) return;
-    const r = await fetch('/api/tasks', { method:'POST', body: new URLSearchParams({name}) });
+    const r = await fetch('/api/tasks', { method:'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: new URLSearchParams({ name }) });
     if (r.ok) loadTasksEnhanced();
+    else { const err = await r.text(); console.error('Create task failed:', r.status, err); alert('Create failed: ' + (err || r.status)); }
   });
 
   // Script editor utilities
   let currentEditingTask = null;
 
-  async function openScriptEditor(taskId, taskName){
-    currentEditingTask = taskId;
-    currentEditingFile = null; // Ensure we're not in file editing mode
-    document.getElementById('editorTitle').textContent = `${TRANSLATIONS.tasks?.scriptFor || 'Script:'} ${taskName || taskId}`;
-    document.getElementById('scriptContent').value = '';
-    document.querySelector('.modal .builtins').style.display = 'block'; // Show builtins for scripts
-    // load existing script
-    const r = await fetch(`/api/tasks/script?id=${encodeURIComponent(taskId)}`);
-    if (r.ok){ const txt = await r.text(); document.getElementById('scriptContent').value = txt; }
+  async function openScriptEditor(taskId, taskName) {
+    const id = String(taskId);
+    currentEditingTask = id;
+    currentEditingFile = null;
+    document.getElementById('editorTitle').textContent = `${TRANSLATIONS.tasks?.scriptFor || 'Script:'} ${taskName || id}`;
+    document.getElementById('scriptContent').value = 'Loading...';
+    document.querySelector('.modal .builtins').style.display = 'block';
+    const scriptEl = document.getElementById('scriptContent');
+
+    // CONSTRUCT THE PATH, as per the user's instruction to mimic the file editor.
+    const scriptPath = `/scripts/${id}.lua`;
+
+    try {
+        // Fetch the script content directly from its path.
+        const rScript = await fetch(scriptPath);
+        if (rScript.ok) {
+            scriptEl.value = await rScript.text();
+        } else {
+            // If the script doesn't exist (e.g., new task), the fetch will fail (404),
+            // and the editor should be empty. This is correct.
+            scriptEl.value = '';
+        }
+    } catch (e) {
+        console.error(`Failed to fetch script from ${scriptPath}:`, e);
+        scriptEl.value = `Error loading script.`;
+    }
+    
+    // Optionally refresh task name from task API (for title only). This is still useful.
+    const rTask = await fetch(`/api/tasks/task?id=${encodeURIComponent(id)}`);
+    if (rTask.ok) {
+        const task = await rTask.json();
+        if (task && task.name) {
+            document.getElementById('editorTitle').textContent = `${TRANSLATIONS.tasks?.scriptFor || 'Script:'} ${task.name}`;
+        }
+    }
+
     // load builtins
-    fetch('/api/builtins').then(r=>r.json()).then(list=>{
-      const ul = document.getElementById('builtinList'); ul.innerHTML = '';
-      list.forEach(fn=>{ const li = document.createElement('li'); li.textContent = fn; li.addEventListener('click', ()=>{ insertAtCursor(document.getElementById('scriptContent'), fn + '()'); }); ul.appendChild(li); });
+    fetch('/api/builtins').then(r => r.json()).then(list => {
+        const ul = document.getElementById('builtinList');
+        ul.innerHTML = '';
+        list.forEach(fn => {
+            const li = document.createElement('li');
+            li.textContent = fn;
+            li.addEventListener('click', () => { insertAtCursor(scriptEl, fn + '()'); });
+            ul.appendChild(li);
+        });
     });
     document.getElementById('scriptEditor').style.display = 'flex';
   }

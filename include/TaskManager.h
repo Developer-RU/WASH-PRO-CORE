@@ -75,4 +75,12 @@ public:
    * @return A JSON string with the task's metadata, or an empty string if not found.
    */
   String getTaskJSON(const String &id);
+
+  /**
+   * @brief Gets a single task as JSON including its script content.
+   * The task object contains id, name, state, hasScript, and script (the task script code).
+   * @param id The ID of the task.
+   * @return A JSON string with the task and its script, or an empty string if task not found.
+   */
+  String getTaskWithScriptJSON(const String &id);
 };

@@ -48,22 +48,20 @@ String TaskManager::createTask(const String &name) {
 bool TaskManager::saveScript(const String &id, const String &name, const String &content) {
   bool ok = true;
 
-  // Only write script file if content is provided
-  if (content.length() > 0) {
-    String path = String("/scripts/") + id + ".lua";
-    Serial.printf("TaskManager::saveScript path=%s len=%u\n", path.c_str(), content.length());
-    File f = LittleFS.open(path, "w");
-    if (!f) {
-      Serial.println("Failed to open script file for writing");
-      return false;
-    }
-    size_t written = f.print(content);
-    f.close();
-    Serial.printf("Wrote %u bytes to %s\n", written, path.c_str());
-    if (written != content.length()) {
-      Serial.println("Warning: script file write size mismatch");
-      ok = false;
-    }
+  // Always write script file (including empty content, so "Save" clears or updates correctly)
+  String path = String("/scripts/") + id + ".lua";
+  Serial.printf("TaskManager::saveScript path=%s len=%u\n", path.c_str(), content.length());
+  File f = LittleFS.open(path, "w");
+  if (!f) {
+    Serial.println("Failed to open script file for writing");
+    return false;
+  }
+  size_t written = f.print(content);
+  f.close();
+  Serial.printf("Wrote %u bytes to %s\n", written, path.c_str());
+  if (written != content.length()) {
+    Serial.println("Warning: script file write size mismatch");
+    ok = false;
   }
 
   // update task's json file (name, hasScript flag)
@@ -87,7 +85,7 @@ bool TaskManager::saveScript(const String &id, const String &name, const String 
       }
       if (name.length() > 0) {
         doc["name"] = name;
-      }
+      } // else, keep the old name
       doc["hasScript"] = LittleFS.exists(String("/scripts/") + id + ".lua"); // Recalculate hasScript
       String out; serializeJson(doc, out);
       File tfw = LittleFS.open(tpath, "w");
@@ -196,35 +194,63 @@ String TaskManager::getTaskJSON(const String &id) {
 }
 
 /**
+ * @brief Gets a single task as JSON including its script content.
+ */
+String TaskManager::getTaskWithScriptJSON(const String &id) {
+  String raw = getTaskJSON(id);
+  if (raw.length() == 0) return "";
+  DynamicJsonDocument meta(1024);
+  DeserializationError err = deserializeJson(meta, raw);
+  if (err) return "";
+  String scriptContent = getScript(id);
+  // Reserve enough for id/name/state/hasScript + script (JSON escaping can ~double size)
+  size_t scriptSerialLen = scriptContent.length() * 2 + 256;
+  size_t cap = 512 + scriptSerialLen;
+  if (cap < 2048) cap = 2048;
+  DynamicJsonDocument doc(cap);
+  if (!doc.capacity()) return "";  // allocation failed
+  doc["id"] = meta["id"].as<String>();
+  doc["name"] = meta["name"].as<String>();
+  doc["state"] = meta["state"].as<String>();
+  doc["hasScript"] = meta.containsKey("hasScript") && meta["hasScript"].as<bool>();
+  doc["script"] = scriptContent;
+  String out;
+  serializeJson(doc, out);
+  return out;
+}
+
+/**
  * @brief Gets a JSON string representing all tasks.
  */
 String TaskManager::getTasksJSON() {
   DynamicJsonDocument doc(2048);
-  UBaseType_t taskCount = uxTaskGetNumberOfTasks();
-  doc["runningTasks"] = taskCount;
   JsonArray arr = doc.createNestedArray("tasks");
+  int runningCount = 0;
   File root = LittleFS.open("/tasks");
   if (root && root.isDirectory()) {
-    File file;
-    while((file = root.openNextFile())){
+    File file = root.openNextFile();
+    while(file){
       if (!file.isDirectory()) {
         DynamicJsonDocument tdoc(1024);
         DeserializationError error = deserializeJson(tdoc, file);
         if (error) {
           Serial.printf("Failed to parse task JSON from stream: %s\n", file.name());
-          file.close(); // Close file on error
+          file.close();
           continue;
-        } else {
-          JsonObject obj = arr.createNestedObject();
-          obj["id"] = String((const char*)tdoc["id"]);
-          obj["name"] = String((const char*)tdoc["name"]);
-          obj["state"] = String((const char*)tdoc["state"]);
-          obj["hasScript"] = tdoc.containsKey("hasScript") && tdoc["hasScript"].as<bool>();
         }
+        const char* state = tdoc["state"] | "stopped";
+        if (state && strcmp(state, "running") == 0) runningCount++;
+        JsonObject obj = arr.createNestedObject();
+        obj["id"] = tdoc["id"].as<String>();
+        obj["name"] = tdoc["name"].as<String>();
+        obj["state"] = String(state);
+        obj["hasScript"] = tdoc.containsKey("hasScript") && tdoc["hasScript"].as<bool>();
       }
-      file.close(); // Ensure file is closed before opening the next one
+      file.close();
+      file = root.openNextFile();
     }
     root.close();
   }
+  doc["runningTasks"] = runningCount;
   String out; serializeJson(doc, out); return out;
 }
