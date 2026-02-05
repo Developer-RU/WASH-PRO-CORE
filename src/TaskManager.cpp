@@ -152,6 +152,21 @@ bool TaskManager::deleteTask(const String &id) {
   String tpath = String("/tasks/") + id + ".json";
   String spath = String("/scripts/") + id + ".lua";
 
+  // Check task state before deleting and stop it if it's running
+  if (LittleFS.exists(tpath)) {
+    File tf = LittleFS.open(tpath, FILE_READ);
+    if (tf) {
+      DynamicJsonDocument doc(1024);
+      deserializeJson(doc, tf);
+      tf.close(); // Close the file immediately after reading
+      String state = doc["state"] | "stopped";
+      if (state == "running") {
+        Serial.printf("Task %s is running, stopping it before deletion.\n", id.c_str());
+        stopTask(id); // Stop the task (i.e., set state to "stopped")
+      }
+    }
+  }
+
   Serial.printf("--- Deleting Task ID: %s ---\n", id.c_str());
 
   bool taskJsonRemoved = false;
@@ -180,6 +195,33 @@ bool TaskManager::deleteTask(const String &id) {
   bool finalScriptExists = LittleFS.exists(spath);
   Serial.printf("  > Final check: Task file exists: %s, Script file exists: %s\n", finalTaskExists ? "yes" : "no", finalScriptExists ? "yes" : "no");
   return taskJsonRemoved && scriptRemoved;
+}
+
+/**
+ * @brief Stops a specific task.
+ */
+bool TaskManager::stopTask(const String &id) {
+  String tpath = String("/tasks/") + id + ".json";
+  if (!LittleFS.exists(tpath)) {
+    Serial.printf("Cannot stop task, not found: %s\n", tpath.c_str());
+    return false;
+  }
+  File tf = LittleFS.open(tpath, FILE_READ);
+  if (!tf) return false;
+  String s = tf.readString();
+  tf.close();
+
+  DynamicJsonDocument doc(1024);
+  deserializeJson(doc, s);
+  doc["state"] = "stopped"; // Mark as stopped
+  String out;
+  serializeJson(doc, out);
+
+  File tfw = LittleFS.open(tpath, FILE_WRITE);
+  if (!tfw) return false;
+  tfw.print(out);
+  tfw.close();
+  return true;
 }
 
 /**

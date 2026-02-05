@@ -83,4 +83,13 @@ public:
    * @return A JSON string with the task and its script, or an empty string if task not found.
    */
   String getTaskWithScriptJSON(const String &id);
+
+private:
+  /**
+   * @brief Stops a specific task.
+   * This is an internal function that marks the task's state as "stopped" in its metadata file.
+   * @param id The unique ID of the task to stop.
+   * @return True if the task was found and marked as stopped, false otherwise.
+   */
+  bool stopTask(const String &id);
 };
