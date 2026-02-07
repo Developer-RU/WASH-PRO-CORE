@@ -375,10 +375,39 @@ document.addEventListener('DOMContentLoaded', ()=>{
           // 3. Delete button (deletes both task and script)
           const delLabel = TRANSLATIONS.tasks?.delete || 'Delete';
           const delBtn = makeAction('<i class="fas fa-trash-can"></i>', delLabel, async ()=>{
-            if (!confirm(TRANSLATIONS.tasks?.deleteConfirm || 'Delete task?')) return;
-            const r = await fetch('/api/tasks/delete', { method:'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: new URLSearchParams({ id: taskId }) });
-            if (r.ok) loadTasksEnhanced();
-            else { const err = await r.text(); console.error('Delete failed:', r.status, err); alert('Delete failed: ' + (err || r.status)); }
+            if (!confirm(`${TRANSLATIONS.tasks?.deleteConfirm || 'Delete task'} "${t.name}"?`)) return;
+
+            // Stop updates during delete
+            if (tasksUpdateInterval) { clearInterval(tasksUpdateInterval); tasksUpdateInterval = null; }
+
+            const taskFilePath = `/tasks/${taskId}.json`;
+            const scriptFilePath = `/scripts/${taskId}.lua`;
+
+            const deletePromises = [];
+            deletePromises.push(
+              fetch('/api/files/delete', { method: 'POST', body: new URLSearchParams({ path: taskFilePath }) })
+            );
+
+            if (t.hasScript) {
+              deletePromises.push(
+                fetch('/api/files/delete', { method: 'POST', body: new URLSearchParams({ path: scriptFilePath }) })
+              );
+            }
+
+            const results = await Promise.all(deletePromises);
+            const allOk = results.every(r => r.ok);
+
+            if (allOk) {
+                loadTasksEnhanced(); // Reload immediately after successful delete
+            } else {
+                console.error('Delete failed:', results); 
+                alert('Delete failed'); 
+            }
+            
+            // Restart updates, but only if the page is still active
+            if (document.getElementById('tasks').classList.contains('active')) {
+                tasksUpdateInterval = setInterval(loadTasksEnhanced, 5000);
+            }
           });
   
           // 4. Run button
@@ -440,7 +469,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
     }
     
     // Optionally refresh task name from task API (for title only). This is still useful.
-    const rTask = await fetch(`/api/tasks/task?id=${encodeURIComponent(id)}`);
+    const rTask = await fetch(`/api/tasks/${encodeURIComponent(id)}`);
     if (rTask.ok) {
         const task = await rTask.json();
         if (task && task.name) {

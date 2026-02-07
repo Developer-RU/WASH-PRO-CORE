@@ -63,9 +63,9 @@ public:
   String getScript(const String &id);
 
   /**
-   * @brief Deletes a task and its associated script.
+   * @brief Stops a running task (if any) and then deletes its metadata and associated script files.
    * @param id The ID of the task to delete.
-   * @return True if both the task metadata and script were successfully deleted (or didn't exist), false otherwise.
+   * @return True if the task files were successfully deleted, false otherwise.
    */
   bool deleteTask(const String &id);
 
@@ -84,7 +84,7 @@ public:
    */
   String getTaskWithScriptJSON(const String &id);
 
-private:
+public:
   /**
    * @brief Stops a specific task.
    * This is an internal function that marks the task's state as "stopped" in its metadata file.

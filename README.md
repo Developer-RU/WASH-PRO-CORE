@@ -60,9 +60,9 @@ A modern, responsive UI with a sidebar menu that displays correctly on both desk
 #### Tasks
 - `GET /api/tasks` — Get a list of all tasks.
 - `POST /api/tasks` — Create, rename a task, or save a script for it (parameters: `id`, `name`, `script`).
-- `GET /api/tasks/script` — Get the script for a task (parameter: `id`).
-- `POST /api/tasks/delete` — Delete a task (parameter: `id`).
+- `GET /api/tasks/{id}` — Get a single task with its script.
 - `POST /api/tasks/run` — Run a task (parameter: `id`).
+- `DELETE /api/tasks/{id}` — Delete a task.
 - `GET /api/builtins` — Get a list of built-in functions for the editor.
 
 #### Files

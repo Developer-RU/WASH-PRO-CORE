@@ -149,52 +149,47 @@ String TaskManager::getScript(const String &id) {
  * @brief Deletes a task and its associated script.
  */
 bool TaskManager::deleteTask(const String &id) {
-  String tpath = String("/tasks/") + id + ".json";
-  String spath = String("/scripts/") + id + ".lua";
-
-  // Check task state before deleting and stop it if it's running
-  if (LittleFS.exists(tpath)) {
-    File tf = LittleFS.open(tpath, FILE_READ);
-    if (tf) {
-      DynamicJsonDocument doc(1024);
-      deserializeJson(doc, tf);
-      tf.close(); // Close the file immediately after reading
-      String state = doc["state"] | "stopped";
-      if (state == "running") {
-        Serial.printf("Task %s is running, stopping it before deletion.\n", id.c_str());
-        stopTask(id); // Stop the task (i.e., set state to "stopped")
-      }
-    }
+  if (id.isEmpty()) {
+    Serial.println("Error: deleteTask called with an empty ID.");
+    return false;
   }
 
-  Serial.printf("--- Deleting Task ID: %s ---\n", id.c_str());
-
-  bool taskJsonRemoved = false;
-  if (LittleFS.exists(tpath)) {
-    if (LittleFS.remove(tpath)) {
-      taskJsonRemoved = true;
-      Serial.printf("  > Deleting task file '%s'... SUCCESS\n", tpath.c_str());
-    } else {
-      Serial.printf("  > Deleting task file '%s'... FAILED\n", tpath.c_str());
-    }
-  } else {
-    Serial.printf("  > Task file '%s' not found, skipping.\n", tpath.c_str());
-    taskJsonRemoved = true; // File doesn't exist, so it's "removed"
+  // The ID might come with ".json" extension from the API call.
+  // We need the base ID to correctly construct both paths.
+  String baseId = id;
+  if (baseId.endsWith(".json")) {
+    baseId.remove(baseId.length() - 5);
   }
 
-  bool scriptRemoved = false;
+  String tpath = String("/tasks/") + baseId + ".json";
+  String spath = String("/scripts/") + baseId + ".lua";
+
+  Serial.printf("--- Deleting Task ID: %s ---\n", baseId.c_str());
+
+  // The concept of stopping a task is just changing its state in the JSON file.
+  // Since we are about to delete the file, there is no need to write "stopped" to it first.
+  // The task will cease to exist, which is the ultimate "stopped" state.
+
+  // Per user request, delete script file first, then the task file.
+  bool scriptFileRemoved = false;
   if (LittleFS.exists(spath)) {
-    scriptRemoved = LittleFS.remove(spath);
-    Serial.printf("  > Deleting script file '%s'... %s\n", spath.c_str(), scriptRemoved ? "SUCCESS" : "FAILED");
+    scriptFileRemoved = LittleFS.remove(spath);
+    Serial.printf("  > %s script file: %s\n", scriptFileRemoved ? "Deleted" : "FAILED to delete", spath.c_str());
   } else {
-    Serial.printf("  > Script file '%s' not found, skipping.\n", spath.c_str());
-    scriptRemoved = true; // File doesn't exist, so it's "removed"
+    Serial.printf("  > Script file not found, skipping: %s\n", spath.c_str());
+    scriptFileRemoved = true; // If it doesn't exist, consider it "removed".
   }
 
-  bool finalTaskExists = LittleFS.exists(tpath);
-  bool finalScriptExists = LittleFS.exists(spath);
-  Serial.printf("  > Final check: Task file exists: %s, Script file exists: %s\n", finalTaskExists ? "yes" : "no", finalScriptExists ? "yes" : "no");
-  return taskJsonRemoved && scriptRemoved;
+  bool taskFileRemoved = false;
+  if (LittleFS.exists(tpath)) {
+    taskFileRemoved = LittleFS.remove(tpath);
+    Serial.printf("  > %s task file: %s\n", taskFileRemoved ? "Deleted" : "FAILED to delete", tpath.c_str());
+  } else {
+    Serial.printf("  > Task file not found (already deleted?): %s\n", tpath.c_str());
+    taskFileRemoved = true; // If it doesn't exist, consider it "removed".
+  }
+
+  return taskFileRemoved && scriptFileRemoved;
 }
 
 /**

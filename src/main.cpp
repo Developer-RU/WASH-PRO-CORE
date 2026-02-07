@@ -68,18 +68,17 @@ void setup() {
     request->send(200, "application/json", tasks.getTasksJSON());
   });
 
-  // API endpoint to get a single task with its script (task gives out the script).
-  server.on("/api/tasks/task", HTTP_GET, [](AsyncWebServerRequest *request){
-    if (request->hasParam("id")) {
-      String id = request->getParam("id")->value();
+  // API endpoint to get a single task with its script.
+  // This uses a regex to capture the ID from the path, e.g., /api/tasks/12345.json
+  server.on("^\\/api\\/tasks\\/([a-zA-Z0-9_.-]+)$", HTTP_GET, [](AsyncWebServerRequest *request) {
+    String id = request->pathArg(0);
+    if (!id.isEmpty()) {
       String json = tasks.getTaskWithScriptJSON(id);
       if (json.length() > 0) {
         request->send(200, "application/json", json);
       } else {
         request->send(404, "application/json", "{\"error\":\"task not found\"}");
       }
-    } else {
-      request->send(400, "application/json", "{\"error\":\"missing id\"}");
     }
   });
 
@@ -119,28 +118,6 @@ void setup() {
     }
   });
 
-  // API endpoint to get the script content for a specific task.
-  server.on("/api/tasks/script", HTTP_GET, [](AsyncWebServerRequest *request){
-    if (request->hasParam("id")) {
-      String id = request->getParam("id")->value();
-      String script = tasks.getScript(id);
-      request->send(200, "text/plain", script);
-    } else {
-      request->send(400, "application/json", "{\"error\":\"missing id\"}");
-    }
-  });
-
-  // API endpoint to delete a task.
-  server.on("/api/tasks/delete", HTTP_POST, [](AsyncWebServerRequest *request){
-    if (request->hasParam("id", true)) {
-      String id = request->getParam("id", true)->value();
-      bool ok = tasks.deleteTask(id);
-      request->send(ok ? 200 : 500, "application/json", ok ? "{\"ok\":true}" : "{\"error\":\"failed to delete\"}");
-    } else {
-      request->send(400, "application/json", "{\"error\":\"missing id\"}");
-    }
-  });
-
   // API endpoint to run a task's script.
   server.on("/api/tasks/run", HTTP_POST, [](AsyncWebServerRequest *request){
     if (request->hasParam("id", true)) {
@@ -156,6 +133,8 @@ void setup() {
   server.on("/api/builtins", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(200, "application/json", "[\"log\",\"setLED\",\"delay\",\"startTask\",\"stopTask\"]");
   });
+
+
 
   /**
    * @brief A lambda function to recursively delete a directory and its contents.
