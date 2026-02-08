@@ -1,8 +1,9 @@
 /**
  * @file main.cpp
- * @date 2026-10-27
  * @author Masyukov Pavel
  * @brief Main application file for the WASH-PRO project. Initializes all subsystems and web server endpoints.
+ * @version 1.0.0
+ * @see https://github.com/pavelmasyukov/WASH-PRO-CORE
  */
 #include <Arduino.h>
 #include <WiFi.h>
