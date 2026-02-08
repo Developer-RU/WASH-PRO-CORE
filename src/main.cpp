@@ -129,6 +129,17 @@ void setup() {
     }
   });
 
+  // API endpoint to delete a task.
+  server.on("/api/tasks/delete", HTTP_POST, [](AsyncWebServerRequest *request){
+    if (request->hasParam("id", true)) {
+      String id = request->getParam("id", true)->value();
+      bool ok = tasks.deleteTask(id);
+      request->send(ok ? 200 : 500, "application/json", ok ? "{\"ok\":true}" : "{\"error\":\"failed to delete\"}");
+    } else {
+      request->send(400, "application/json", "{\"error\":\"missing id\"}");
+    }
+  });
+
   // API endpoint to provide a list of built-in Lua functions for the script editor.
   server.on("/api/builtins", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(200, "application/json", "[\"log\",\"setLED\",\"delay\",\"startTask\",\"stopTask\"]");
