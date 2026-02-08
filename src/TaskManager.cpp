@@ -9,18 +9,8 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <LittleFS.h>
-#include <ESPAsyncWebServer.h> // For AsyncEventSource
 #include <lua/lua.hpp>
 
-// Constants for paths and sizes
-static const char* TASKS_DIR = "/tasks";
-static const char* SCRIPTS_DIR = "/scripts";
-static const char* JSON_EXT = ".json";
-static const char* LUA_EXT = ".lua";
-static const size_t MAX_PATH_LEN = 64;
-static const size_t LUA_TASK_STACK_SIZE = 8192;
-static const UBaseType_t LUA_TASK_PRIORITY = 5;
- 
 // Pointer to the global task manager instance, set in begin()
 static TaskManager* s_taskManager = nullptr;
 
@@ -31,9 +21,7 @@ static TaskManager* s_taskManager = nullptr;
  */
 static int l_log(lua_State *L) {
     const char *msg = luaL_checkstring(L, 1);
-    if (msg) {
-        Serial.printf("[LUA] %s\n", msg);
-    }
+    if (msg) Serial.printf("[LUA] %s\n", msg);
     return 0;
 }
 
@@ -58,9 +46,7 @@ static int l_setLED(lua_State *L) {
  */
 static int l_delay(lua_State *L) {
     int ms = luaL_checkinteger(L, 1);
-    if (ms > 0) {
-        vTaskDelay(pdMS_TO_TICKS(ms)); // Use FreeRTOS delay for better multitasking
-    }
+    if (ms > 0) delay(ms);
     return 0;
 }
 
@@ -76,14 +62,15 @@ static int l_startTask(lua_State *L) {
         if (baseId.endsWith(".json")) {
             baseId.remove(baseId.length() - 5);
         }
-        // Asynchronously start the other task. This is non-blocking.
+        // This is a recursive call. It will run the other task's script to completion
+        // before returning. This is simple but can lead to deep recursion if tasks call each other.
         s_taskManager->runTask(baseId);
     }
     return 0;
 }
 
 /**
- * @brief Lua-callable function to stop a running task.
+ * @brief Lua-callable function to stop a task.
  * @param L The Lua state. Expects one string argument (task ID).
  * @return 0.
  */
@@ -101,22 +88,40 @@ static int l_stopTask(lua_State *L) {
 }
 
 /**
- * @brief A struct to pass arguments to the FreeRTOS task runner.
+ * @brief Initializes the TaskManager.
  */
-struct TaskArgs {
-  TaskManager* manager;
-  String taskId;
-};
+void TaskManager::begin() {
+  s_taskManager = this;
+  // ensure directories
+  if (!LittleFS.exists("/tasks")) {
+    LittleFS.mkdir("/tasks");
+  }
+  if (!LittleFS.exists("/scripts")) {
+    LittleFS.mkdir("/scripts");
+  }
+}
 
 /**
- * @brief The actual FreeRTOS task function that executes a Lua script.
- * This runs in the background, isolated from the main loop and web server.
- * @param pvParameters A pointer to a TaskArgs struct.
+ * @brief Creates a new task with a given name.
  */
-static void taskRunner(void *pvParameters) {
-  TaskArgs* args = (TaskArgs*)pvParameters;
-  String baseId = args->taskId;
-  TaskManager* manager = args->manager;
+String TaskManager::createTask(const String &name) {
+  String baseName = name;
+  if (baseName.endsWith(".json")) {
+    baseName.remove(baseName.length() - 5);
+  }
+  String id = String((uint32_t)millis());
+  DynamicJsonDocument doc(512);
+  doc["id"] = id;
+  doc["name"] = baseName;
+  doc["state"] = "stopped";
+  doc["hasScript"] = false;
+  String out; serializeJson(doc, out);
+  File f = LittleFS.open(String("/tasks/") + id + ".json", FILE_WRITE);
+  if (!f) return "";
+  f.print(out);
+  f.close();
+  return id;
+}
 
 /**
  * @brief Saves a script for a task and/or updates its name.
@@ -215,16 +220,15 @@ void TaskManager::_luaTaskRunner(void* pvParameters) {
 
       // Execute the script
       int result = luaL_dostring(L, scriptContent.c_str());
-      if (result != LUA_OK) { // LUA_OK is 0
+      if (result != LUA_OK) {
         const char *error = lua_tostring(L, -1);
         Serial.printf("Lua error in task %s: %s\n", taskId.c_str(), error);
       }
+
       lua_close(L);
     } else {
       Serial.printf("Failed to create Lua state for task %s\n", taskId.c_str());
     }
-  } else {
-    Serial.printf("[TaskRunner %s] No script found to run.\n", baseId.c_str());
   }
 
   // After script execution, set the task state back to "stopped"
@@ -306,15 +310,11 @@ String TaskManager::getScript(const String &id) {
   if (baseId.endsWith(".json")) {
     baseId.remove(baseId.length() - 5);
   }
-  char path[MAX_PATH_LEN];
-  snprintf(path, sizeof(path), "%s/%s%s", SCRIPTS_DIR, baseId.c_str(), LUA_EXT);
-
+  String path = String("/scripts/") + baseId + ".lua";
   if (!LittleFS.exists(path)) return "";
   File f = LittleFS.open(path, FILE_READ);
   if (!f) return "";
-  String s = f.readString();
-  f.close();
-  return s;
+  String s = f.readString(); f.close(); return s;
 }
 
 /**
@@ -326,34 +326,39 @@ bool TaskManager::deleteTask(const String &id) {
     return false;
   }
 
-  String baseId = id; // The ID might come with ".json" extension.
+  // The ID might come with ".json" extension from the API call.
+  // We need the base ID to correctly construct both paths.
+  String baseId = id;
   if (baseId.endsWith(".json")) {
     baseId.remove(baseId.length() - 5);
   }
 
-  char tpath[MAX_PATH_LEN];
-  _getTaskPath(baseId, tpath, sizeof(tpath));
-
-  char spath[MAX_PATH_LEN];
-  snprintf(spath, sizeof(spath), "%s/%s%s", SCRIPTS_DIR, baseId.c_str(), LUA_EXT);
+  String tpath = String("/tasks/") + baseId + ".json";
+  String spath = String("/scripts/") + baseId + ".lua";
 
   Serial.printf("--- Deleting Task ID: %s ---\n", baseId.c_str());
+
+  // The concept of stopping a task is just changing its state in the JSON file.
+  // Since we are about to delete the file, there is no need to write "stopped" to it first.
+  // The task will cease to exist, which is the ultimate "stopped" state.
+
+  // Per user request, delete script file first, then the task file.
   bool scriptFileRemoved = false;
   if (LittleFS.exists(spath)) {
     scriptFileRemoved = LittleFS.remove(spath);
-    Serial.printf("Script file '%s' %s.\n", spath, scriptFileRemoved ? "deleted" : "failed to delete");
+    Serial.printf("  > %s script file: %s\n", scriptFileRemoved ? "Deleted" : "FAILED to delete", spath.c_str());
   } else {
-    Serial.printf("Script file '%s' not found, skipping.\n", spath);
-    scriptFileRemoved = true; // Not an error if it doesn't exist
+    Serial.printf("  > Script file not found, skipping: %s\n", spath.c_str());
+    scriptFileRemoved = true; // If it doesn't exist, consider it "removed".
   }
 
   bool taskFileRemoved = false;
   if (LittleFS.exists(tpath)) {
     taskFileRemoved = LittleFS.remove(tpath);
-    Serial.printf("Task file '%s' %s.\n", tpath, taskFileRemoved ? "deleted" : "failed to delete");
+    Serial.printf("  > %s task file: %s\n", taskFileRemoved ? "Deleted" : "FAILED to delete", tpath.c_str());
   } else {
-    Serial.printf("Task file '%s' not found, skipping.\n", tpath);
-    taskFileRemoved = true;
+    Serial.printf("  > Task file not found (already deleted?): %s\n", tpath.c_str());
+    taskFileRemoved = true; // If it doesn't exist, consider it "removed".
   }
 
   return taskFileRemoved && scriptFileRemoved;
@@ -408,15 +413,11 @@ String TaskManager::getTaskJSON(const String &id) {
   if (baseId.endsWith(".json")) {
     baseId.remove(baseId.length() - 5);
   }
-  char tpath[MAX_PATH_LEN];
-  _getTaskPath(baseId, tpath, sizeof(tpath));
-
+  String tpath = String("/tasks/") + baseId + ".json";
   if (!LittleFS.exists(tpath)) return "";
   File tf = LittleFS.open(tpath, FILE_READ);
   if (!tf) return "";
-  String s = tf.readString();
-  tf.close();
-  return s;
+  String s = tf.readString(); tf.close(); return s;
 }
 
 /**
@@ -428,15 +429,15 @@ String TaskManager::getTaskWithScriptJSON(const String &id) {
     baseId.remove(baseId.length() - 5);
   }
   String raw = getTaskJSON(baseId);
-  if (raw.isEmpty()) return "";
-
+  if (raw.length() == 0) return "";
   DynamicJsonDocument meta(1024);
   DeserializationError err = deserializeJson(meta, raw);
   if (err) return "";
-
   String scriptContent = getScript(baseId);
-  
-  size_t cap = JSON_OBJECT_SIZE(4) + meta["id"].as<String>().length() + meta["name"].as<String>().length() + 10 + scriptContent.length() + 512;
+  // Reserve enough for id/name/state/hasScript + script (JSON escaping can ~double size)
+  size_t scriptSerialLen = scriptContent.length() * 2 + 256;
+  size_t cap = 512 + scriptSerialLen;
+  if (cap < 2048) cap = 2048;
   DynamicJsonDocument doc(cap);
   if (!doc.capacity()) return "";  // allocation failed
   doc["id"] = meta["id"].as<String>();
@@ -451,73 +452,35 @@ String TaskManager::getTaskWithScriptJSON(const String &id) {
 
 /**
  * @brief Gets a JSON string representing all tasks.
- * @return String A JSON object containing an array of all tasks and the count of running tasks.
  */
 String TaskManager::getTasksJSON() {
-  DynamicJsonDocument doc(4096);
+  DynamicJsonDocument doc(2048);
+  JsonArray arr = doc.createNestedArray("tasks");
   int runningCount = 0;
-  File root = LittleFS.open(TASKS_DIR);
-  if (root) {
+  File root = LittleFS.open("/tasks");
+  if (root && root.isDirectory()) {
     File file = root.openNextFile();
     while(file){
       if (!file.isDirectory()) {
         DynamicJsonDocument tdoc(1024);
-        deserializeJson(tdoc, file); // Ignore errors for robustness
-        const char* state = tdoc["state"] | "stopped";
-        if (strcmp(state, "running") == 0) {
-          runningCount++;
+        DeserializationError error = deserializeJson(tdoc, file);
+        if (error) {
+          Serial.printf("Failed to parse task JSON from stream: %s\n", file.name());
+        } else {
+          const char* state = tdoc["state"] | "stopped";
+          if (state && strcmp(state, "running") == 0) runningCount++;
+          JsonObject obj = arr.createNestedObject();
+          obj["id"] = tdoc["id"].as<String>();
+          obj["name"] = tdoc["name"].as<String>();
+          obj["state"] = String(state);
+          obj["hasScript"] = tdoc.containsKey("hasScript") && tdoc["hasScript"].as<bool>();
         }
-        // Add to a temporary list to be sorted
       }
       file.close();
       file = root.openNextFile();
     }
     root.close();
   }
-
-  JsonArray arr = doc.createNestedArray("tasks");
-  root = LittleFS.open(TASKS_DIR);
-  if (root) {
-    File file = root.openNextFile();
-    while(file) {
-      if (!file.isDirectory()) {
-        JsonObject obj = arr.createNestedObject();
-        deserializeJson(obj, file);
-      }
-      file.close();
-      file = root.openNextFile();
-    }
-    root.close();
-  }
-
   doc["runningTasks"] = runningCount;
-  String out;
-  serializeJson(doc, out);
-  return out;
-}
-
-/**
- * @brief Sends a "tasks_update" event to all connected web clients.
- */
-void TaskManager::sendUpdate() {
-  if (_events) {
-    _events->send("tasks_update", "update", millis());
-  }
-}
-
-/**
- * @brief Helper function to get the full path for a task's JSON file.
- */
-void TaskManager::_getTaskPath(const String& id, char* buffer, size_t len) {
-    snprintf(buffer, len, "%s/%s%s", TASKS_DIR, id.c_str(), JSON_EXT);
-}
-
-/**
- * @brief Gets the count of currently running tasks.
- * @return int The number of tasks with state "running".
- */
-int TaskManager::getRunningTaskCount() {
-    // This is a simplified version of the logic in getTasksJSON().
-    // For performance, it could be cached if called frequently.
-    return 0; // Placeholder, full implementation would iterate files.
+  String out; serializeJson(doc, out); return out;
 }

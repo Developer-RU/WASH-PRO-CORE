@@ -13,10 +13,6 @@
  * @param server A pointer to the AsyncWebServer instance.
  */
 void WebUI::begin(AsyncWebServer *server) {
-  // Serve static files from LittleFS root, but filter out API calls
-  server->serveStatic("/", LittleFS, "/")
-      .setDefaultFile("index.html")
-      .setFilter([](AsyncWebServerRequest *request) {
-        return !request->url().startsWith("/api/");
-      });
+  // serve static files from LittleFS root
+  server->serveStatic("/", LittleFS, "/").setDefaultFile("index.html");
 }

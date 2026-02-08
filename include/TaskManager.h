@@ -14,9 +14,6 @@
 #include <map>
 #include <freertos/task.h>
 
-class AsyncEventSource; // Forward declaration
-
-
 /**
  * @class TaskManager
  * @brief Manages tasks and their associated scripts.
@@ -28,14 +25,13 @@ class TaskManager {
 public:
   /**
    * @brief Initializes the TaskManager.
-   * @param events A pointer to the global AsyncEventSource for sending updates.
    * Ensures that the required directories (/tasks, /scripts) exist in the filesystem.
    */
-  void begin(AsyncEventSource* events);
+  void begin();
 
   /**
    * @brief Runs a specific task.
-   * Asynchronously starts a FreeRTOS task to execute the script.
+   * Currently, it marks the task's state as "running" in its metadata file.
    * @param id The unique ID of the task to run.
    * @return True if the task was found and marked as running, false otherwise.
    */
@@ -116,22 +112,4 @@ public:
    * @brief Stops a running task and/or updates its state to "stopped".
    */
   bool stopTask(const String &id);
-
-  /**
-   * @brief Sends a "tasks_update" event to all connected web clients.
-   * Used to notify the UI about changes in the task list or states.
-   */
-  void sendUpdate();
-
-private:
-  AsyncEventSource* _events = nullptr; ///< Pointer to the server-sent events source.
-
-  /**
-   * @brief Internal helper to update the state of a task in its JSON file.
-   */
-  bool _updateTaskState(const String& id, const char* state);
-  /**
-   * @brief Helper function to get the full path for a task's JSON file.
-   */
-  void _getTaskPath(const String& id, char* buffer, size_t len);
 };

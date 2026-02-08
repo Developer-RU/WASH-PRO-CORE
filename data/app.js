@@ -380,17 +380,27 @@ document.addEventListener('DOMContentLoaded', ()=>{
             // Stop updates during delete
             if (tasksUpdateInterval) { clearInterval(tasksUpdateInterval); tasksUpdateInterval = null; }
 
-            const response = await fetch('/api/tasks/delete', { 
-              method: 'POST', 
-              headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-              body: new URLSearchParams({ id: taskId }) 
-            });
+            const taskFilePath = `/tasks/${taskId}.json`;
+            const scriptFilePath = `/scripts/${taskId}.lua`;
 
-            if (response.ok) {
-                // alert('Delete successful'); // Optional: provide user feedback
+            const deletePromises = [];
+            deletePromises.push(
+              fetch('/api/files/delete', { method: 'POST', body: new URLSearchParams({ path: taskFilePath }) })
+            );
+
+            if (t.hasScript) {
+              deletePromises.push(
+                fetch('/api/files/delete', { method: 'POST', body: new URLSearchParams({ path: scriptFilePath }) })
+              );
+            }
+
+            const results = await Promise.all(deletePromises);
+            const allOk = results.every(r => r.ok);
+
+            if (allOk) {
                 loadTasksEnhanced(); // Reload immediately after successful delete
             } else {
-                console.error('Delete failed:', response); 
+                console.error('Delete failed:', results); 
                 alert('Delete failed'); 
             }
             
@@ -401,7 +411,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
           });
   
           // 4. Run/Stop button
-          if (t.state === 'running') { 
+          if (t.state === 'running') {
             const stopLabel = TRANSLATIONS.tasks?.stop || 'Stop';
             const stopBtn = makeAction('<i class="fas fa-stop"></i>', stopLabel, async () => {
               await fetch('/api/tasks/stop', { method: 'POST', body: new URLSearchParams({ id: taskId }) });

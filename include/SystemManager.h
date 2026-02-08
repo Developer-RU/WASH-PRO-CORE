@@ -11,8 +11,8 @@
 #include <ArduinoJson.h>
 #include <Preferences.h>
 #include <LittleFS.h>
-
-class AsyncWebServerRequest; // Forward declaration
+#include <AsyncTCP.h>
+#include <ESPAsyncWebServer.h>
 
 /**
  * @class SystemManager
