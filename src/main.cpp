@@ -1,5 +1,6 @@
 /**
  * @file main.cpp
+ * @date 2026-10-27
  * @author Masyukov Pavel
  * @brief Main application file for the WASH-PRO project. Initializes all subsystems and web server endpoints.
  */
@@ -7,11 +8,8 @@
 #include <WiFi.h>
 #include <LittleFS.h>
 #include <AsyncTCP.h>
-#include <ESPAsyncWebServer.h>
-#include <map>
-// Enable regular expression support for ESPAsyncWebServer routes
 #define ASYNCWEBSERVER_REGEX
-
+#include <ESPAsyncWebServer.h>
 #include <ArduinoJson.h>
 #include "SystemManager.h"
 #include "TaskManager.h"
@@ -33,11 +31,11 @@ AsyncEventSource events("/events"); ///< Global instance for Server-Sent Events.
 void setup() {
   Serial.begin(115200);
   while (!Serial) { delay(10); } // Wait for serial connection
-  Serial.println("\n\n=== WASH-PRO-CORE Starting ===");
+  Serial.println(F("\n\n=== WASH-PRO-CORE Starting ==="));
 
   // Initialize LittleFS
   if (!LittleFS.begin(false)) { // false = do not format on fail
-    Serial.println("LittleFS Mount Failed. It may need to be formatted.");
+    Serial.println(F("LittleFS Mount Failed. It may need to be formatted."));
     // You might want to add a way to format the filesystem, e.g., on a specific boot condition.
   } else {
     Serial.println("LittleFS Mounted."); 
@@ -48,12 +46,11 @@ void setup() {
   
   // Start as Access Point by default
   String apName = "WASH-PRO-CORE";
-  apName += "-";
   uint64_t mac = ESP.getEfuseMac();
   char buf[8];
-  sprintf(buf, "%04llX", (mac & 0xFFFF));
+  snprintf(buf, sizeof(buf), "-%04llX", (uint16_t)(mac & 0xFFFF));
   apName += buf;
-  WiFi.softAP(apName.c_str());
+  WiFi.softAP(apName);
   IPAddress ip = WiFi.softAPIP();
   Serial.printf("AP started: %s @ %s\n", apName.c_str(), ip.toString().c_str());
 
@@ -62,15 +59,26 @@ void setup() {
   DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "Content-Type");
 
+  // --- API Endpoints ---
+
   // API endpoint to get general system information.
   server.on("/api/info", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(200, "application/json", sys.getInfoJSON());
+    // This is a simplified way to get running task count.
+    // A more robust solution might involve TaskManager caching the count.
+    DynamicJsonDocument doc(4096);
+    deserializeJson(doc, tasks.getTasksJSON());
+    int runningTasks = doc["runningTasks"] | 0;
+
+    request->send(200, "application/json", sys.getInfoJSON(runningTasks));
   });
 
   // API endpoint to run a task's script.
   server.on("/api/tasks/run", HTTP_POST, [](AsyncWebServerRequest *request){
-
-    Serial.println("Running task");
+    if (!request->hasParam("id", true)) {
+      request->send(400, "application/json", "{\"error\":\"missing id\"}");
+      return;
+    }
+    String id = request->getParam("id", true)->value();      
 
     if (request->hasParam("id", true)) {
       String id = request->getParam("id", true)->value();      
@@ -83,9 +91,11 @@ void setup() {
 
   // API endpoint to delete a task.
   server.on("/api/tasks/delete", HTTP_POST, [](AsyncWebServerRequest *request){
-
-    Serial.println("Deleting task");
-
+    if (!request->hasParam("id", true)) {
+      request->send(400, "application/json", "{\"error\":\"missing id\"}");
+      return;
+    }
+    String id = request->getParam("id", true)->value();
     if (request->hasParam("id", true)) {
       String id = request->getParam("id", true)->value();
       bool ok = tasks.deleteTask(id);
@@ -102,7 +112,7 @@ void setup() {
 
   // API endpoint to get a single task with its script.
   // This uses a regex to capture the ID from the path, e.g., /api/tasks/12345.json
-  // Added negative lookahead to prevent matching 'run' or 'delete'
+  // The negative lookahead prevents matching sub-paths like 'run' or 'delete'.
   server.on("^\\/api\\/tasks\\/(?!run$|delete$)([a-zA-Z0-9_.-]+)$", HTTP_GET, [](AsyncWebServerRequest *request) {
     String id = request->pathArg(0);
     if (!id.isEmpty()) {
@@ -121,32 +131,32 @@ void setup() {
     String name = request->hasParam("name", true) ? request->getParam("name", true)->value() : "";
     String script = request->hasParam("script", true) ? request->getParam("script", true)->value() : "";
 
-    // Logic: if 'script' is present, we are saving a script. Otherwise, creating/renaming
-    if (request->hasParam("script", true)) { // This is a script save operation
-      if (id.length() == 0) {
+    // Logic: if 'script' is present, it's a save/update operation.
+    if (request->hasParam("script", true)) {
+      if (id.isEmpty()) {
         request->send(400, "application/json", "{\"error\":\"missing id for script save\"}");
         return;
       }
       Serial.printf("Saving script for id=%s, name=%s, script_len=%u\n", id.c_str(), name.c_str(), script.length());
-      bool ok = tasks.saveScript(id, name, script); // name might be empty if only script is updated
+      bool ok = tasks.saveScript(id, name, script); // name can be empty if only updating script content
       request->send(ok ? 200 : 500, "application/json", ok ? "{\"ok\":true}" : "{\"error\":\"failed to save script\"}");
-    } else if (name.length() > 0) { // This is a create or rename operation
-      if (id.length() > 0) {
-        // This is a rename operation
+    } else if (!name.isEmpty()) { // No script param, so it's a create or rename.
+      if (!id.isEmpty()) {
+        // Rename operation: use saveScript with empty script content to only update the name.
         Serial.printf("Renaming task id=%s to name=%s\n", id.c_str(), name.c_str());
-        bool ok = tasks.saveScript(id, name, ""); // Use saveScript to update name, with empty script content
+        bool ok = tasks.saveScript(id, name, "");
         request->send(ok ? 200 : 404, "application/json", ok ? "{\"ok\":true}" : "{\"error\":\"not found\"}");
       } else {
-        // This is a create operation
+        // Create operation
         Serial.printf("Creating task name=%s\n", name.c_str());
         String newId = tasks.createTask(name);
-        if (newId.length() > 0) {
+        if (!newId.isEmpty()) {
           request->send(200, "application/json", tasks.getTaskJSON(newId));
         } else {
           request->send(500, "application/json", "{\"error\":\"failed to create task\"}");
         }
       }
-    } else { // Neither name nor script provided
+    } else {
       request->send(400, "application/json", "{\"error\":\"no name or script provided\"}");
     }
   });
@@ -159,7 +169,7 @@ void setup() {
   /**
    * @brief A lambda function to recursively delete a directory and its contents.
    * @param path The path of the directory to delete.
-   * @note This is captured by the /api/files/delete endpoint.
+   * @note This is captured by the /api/files/delete endpoint lambda.
    */
   std::function<void(String)> deleteRecursive = 
     [&](const String& path) {
@@ -169,13 +179,13 @@ void setup() {
       }
       File file = root.openNextFile();
       while (file) {
-        String entryPath = file.name(); // file.name() returns the full path
+        String entryPath = String(file.name()); // file.name() returns the full path
         if (file.isDirectory()) {
           deleteRecursive(entryPath);
         } else {
           LittleFS.remove(entryPath);
         }
-        file.close(); // Ensure file handle is closed
+        file.close();
         file = root.openNextFile();
       }
       root.close();
@@ -200,7 +210,7 @@ void setup() {
       File file = root.openNextFile();
       while (file) {
         JsonObject fileObj = files.createNestedObject();
-        String fullPath = String(file.name());
+        String fullPath(file.name());
         fileObj["name"] = fullPath.substring(fullPath.lastIndexOf('/') + 1);
         fileObj["size"] = file.size();
         fileObj["isDir"] = file.isDirectory();
@@ -215,20 +225,23 @@ void setup() {
 
   // API endpoint to delete a file or directory.
   server.on("/api/files/delete", HTTP_POST, [deleteRecursive](AsyncWebServerRequest *request){
+    if (!request->hasParam("path", true)) {
+      request->send(400, "application/json", "{\"error\":\"missing path\"}");
+      return;
+    }
+    String path = request->getParam("path", true)->value();
+    if (!path.startsWith("/") || !LittleFS.exists(path)) {
+      request->send(404, "application/json", "{\"error\":\"file or directory not found\"}");
+      return;
+    }
 
-    if (request->hasParam("path", true)) {
-      String path = request->getParam("path", true)->value();
-      if (path.startsWith("/") && LittleFS.exists(path)) {
-        File f = LittleFS.open(path);
-        if (!f) { request->send(500, "application/json", "{\"error\":\"failed to open path\"}"); return; }
-        bool isDir = f.isDirectory();
-        f.close();
-        if (isDir) deleteRecursive(path);
-        else LittleFS.remove(path);
-        request->send(200, "application/json", "{\"ok\":true}");
-      } else {
-        request->send(404, "application/json", "{\"error\":\"failed to remove\"}");
-      }
+    File f = LittleFS.open(path);
+    if (!f) { request->send(500, "application/json", "{\"error\":\"failed to open path\"}"); return; }
+    bool isDir = f.isDirectory();
+    f.close();
+
+    if (isDir) {
+      deleteRecursive(path);
     } else {
       request->send(400, "application/json", "{\"error\":\"missing path\"}");
     }
@@ -236,18 +249,22 @@ void setup() {
 
   // API endpoint to rename a file.
   server.on("/api/files/rename", HTTP_POST, [](AsyncWebServerRequest *request){
-    if (request->hasParam("path", true) && request->hasParam("newName", true)) {
-      String path = request->getParam("path", true)->value();
-      String newName = request->getParam("newName", true)->value();
-      String parentPath = path.substring(0, path.lastIndexOf('/'));
-      String newPath = parentPath + "/" + newName;
-      if (LittleFS.rename(path, newPath)) {
-        request->send(200, "application/json", "{\"ok\":true}");
-      } else {
-        request->send(500, "application/json", "{\"error\":\"rename failed\"}");
-      }
-    } else {
+    if (!request->hasParam("path", true) || !request->hasParam("newName", true)) {
       request->send(400, "application/json", "{\"error\":\"missing params\"}");
+      return;
+    }
+    String path = request->getParam("path", true)->value();
+    String newName = request->getParam("newName", true)->value();
+    if (!path.startsWith("/") || newName.isEmpty() || newName.indexOf('/') != -1) {
+      request->send(400, "application/json", "{\"error\":\"invalid path or newName\"}");
+      return;
+    }
+    String parentPath = path.substring(0, path.lastIndexOf('/'));
+    String newPath = parentPath + "/" + newName;
+    if (LittleFS.rename(path, newPath)) {
+      request->send(200, "application/json", "{\"ok\":true}");
+    } else {
+      request->send(500, "application/json", "{\"error\":\"rename failed\"}");
     }
   });
 
@@ -346,14 +363,14 @@ void setup() {
       String pass = request->getParam("pass", true)->value();
       sys.saveWiFiCredentials(ssid, pass);
       // try connect
-      WiFi.begin(ssid.c_str(), pass.c_str()); 
+      WiFi.begin(ssid, pass); 
       uint8_t tries = 0;
       while (WiFi.status() != WL_CONNECTED && tries < 30) {
-        delay(200); 
+        delay(500); 
         tries++;
       }
       if (WiFi.status() == WL_CONNECTED) {
-        request->send(200, "application/json", "{\"ok\":true}");
+        request->send(200, "application/json", "{\"ok\":true, \"ip\":\"" + WiFi.localIP().toString() + "\"}");
       } else {
         request->send(500, "application/json", "{\"error\":\"connection failed\"}");
       }
@@ -379,7 +396,7 @@ void setup() {
     if(client->lastId()){
       Serial.printf("SSE Client reconnected! Last message ID: %s\n", client->lastId());
     }
-    client->send("hello!", NULL, millis(), 1000);
+    client->send("hello", "connected", millis(), 1000);
   });
   server.addHandler(&events);
 
@@ -389,7 +406,7 @@ void setup() {
     else request->send(404, "text/plain", "Not found");
   });
 
-  // Add the Web UI handler. This should be last as it's a catch-all for static files.
+  // Add the Web UI handler. This must be last as it's a catch-all for static files.
   ui.begin(&server);
 
   server.begin();
@@ -401,5 +418,5 @@ void setup() {
  * This function is empty as all operations (web server, tasks) are handled asynchronously.
  */
 void loop() {
-  // nothing to do; server and tasks run in background
+  // Nothing to do here; server and tasks run in the background.
 }
