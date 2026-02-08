@@ -4,6 +4,10 @@ document.addEventListener('DOMContentLoaded', ()=>{
   let tasksUpdateInterval = null;
   let infoUpdateInterval = null;
 
+  // Добавляем флаг для отслеживания фокуса на поле лицензии
+  let licenseKeyHasFocus = false;
+  let originalLicenseKeyValue = '';
+
   function updateIcon() {
     if (sidebar.classList.contains('open')) {
       toggle.classList.add('is-active');
@@ -154,7 +158,9 @@ document.addEventListener('DOMContentLoaded', ()=>{
     const activeLi = document.querySelector('.sidebar ul li.active span');
     if (activeLi) document.getElementById('title').innerText = activeLi.innerText;
 
-    if (document.getElementById('system').classList.contains('active')) loadSystem().catch(e => console.error(e));
+    if (document.getElementById('system').classList.contains('active')) {
+      loadSystem().catch(e => console.error(e));
+    }
     if (document.getElementById('files').classList.contains('active')) loadFiles().catch(e => console.error(e));
   }
 
@@ -196,7 +202,14 @@ document.addEventListener('DOMContentLoaded', ()=>{
       document.getElementById('language').value = lang;
       const themeLink = document.getElementById('theme'); if (themeLink) themeLink.href = `/themes/${theme}.css`;
       document.getElementById('autoUpdateCheckbox').checked = j.autoUpdate || false;
-      document.getElementById('licenseKey').value = j.licenseKey || '';
+      
+      // Сохраняем текущее значение поля, если пользователь его редактирует
+      const licenseKeyField = document.getElementById('licenseKey');
+      if (!licenseKeyHasFocus) {
+        licenseKeyField.value = j.licenseKey || '';
+        originalLicenseKeyValue = licenseKeyField.value;
+      }
+      
       const sel = document.getElementById('themeSelect'); if (sel) sel.value = theme;
 
       await loadTranslations(lang);
@@ -328,122 +341,229 @@ document.addEventListener('DOMContentLoaded', ()=>{
     document.getElementById('scriptEditor').style.display = 'flex';
   }
 
-        // Enhanced tasks UI and script editor
-    async function loadTasksEnhanced(){
-      fetch('/api/tasks').then(r=>r.json()).then(j=>{
-        const container = document.getElementById('tasksList');
-        container.innerHTML = ''; // Always clear the container for a full redraw
-        const arr = (j && j.tasks) ? j.tasks.sort((a,b) => a.name.localeCompare(b.name)) : (Array.isArray(j) ? j.sort((a,b) => a.name.localeCompare(b.name)) : []);
-        arr.forEach(t=>{
-          const card = document.createElement('div');
-          card.className = 'task-card';
+  // Enhanced tasks UI and script editor
+  async function loadTasksEnhanced(){
+    console.log('Loading tasks...');
+    fetch('/api/tasks').then(r=>r.json()).then(j=>{
+      const container = document.getElementById('tasksList');
+      container.innerHTML = ''; // Always clear the container for a full redraw
+      const arr = (j && j.tasks) ? j.tasks.sort((a,b) => a.name.localeCompare(b.name)) : (Array.isArray(j) ? j.sort((a,b) => a.name.localeCompare(b.name)) : []);
+      
+      if (arr.length === 0) {
+        container.innerHTML = '<div class="empty-state">' + (TRANSLATIONS.tasks?.noTasks || 'No tasks found. Create your first task!') + '</div>';
+        return;
+      }
+      
+      arr.forEach(t=>{
+        const card = document.createElement('div');
+        card.className = 'task-card';
 
-          const info = document.createElement('div'); info.className = 'task-info';
-          const title = document.createElement('div'); title.textContent = t.name; title.style.fontWeight='700';
-          const meta = document.createElement('div');
-          const stateStr = t.state === 'running' ? 'running' : 'stopped';
-          const translatedState = TRANSLATIONS.tasks?.status?.[stateStr] || stateStr;
-          meta.textContent = `${TRANSLATIONS.tasks?.stateLabel || 'State'}: ${translatedState}${t.hasScript ? ` • ${TRANSLATIONS.tasks?.hasScript || 'has script'}` : ''}`;
-          info.appendChild(title); info.appendChild(meta);
-          const actions = document.createElement('div'); actions.className='task-actions';
-          // helper to create an icon+label button
-          function makeAction(icon, labelText, cb, btnClass = ''){
-            const b = document.createElement('button');
-            b.className = 'task-action-btn';
-            b.innerHTML = `<span class="btn-icon">${icon || ''}</span><span class="btn-text">${labelText}</span>`;
-            b.title = labelText;
-            b.setAttribute('aria-label', labelText);
-            b.addEventListener('click', cb);
-            return b;
-          }
-  
-          // 1. Edit Task button (rename)
-          const renameLabel = TRANSLATIONS.tasks?.renamePrompt || 'Rename task';
-          const taskId = String(t.id);
-          const editTaskBtn = makeAction('<i class="fas fa-pencil"></i>', renameLabel, async ()=>{
-            const newName = prompt(renameLabel, t.name);
-            if (!newName || newName === t.name) return;
-            const r = await fetch('/api/tasks', { method:'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: new URLSearchParams({ name: newName, id: taskId }) });
-            if (r.ok) loadTasksEnhanced();
-            else { const err = await r.text(); console.error('Rename failed:', r.status, err); alert('Rename failed: ' + (err || r.status)); }
-          });
-  
-          // 2. Edit Script button
-          const scriptLabel = t.hasScript? (TRANSLATIONS.tasks?.editScript||'Edit script') : (TRANSLATIONS.tasks?.attachScript||'Attach script');
-          const scriptBtn = makeAction('<i class="fas fa-file-alt"></i>', scriptLabel, ()=>{ openScriptEditor(taskId, t.name); });
-  
-          // 3. Delete button (deletes both task and script)
-          const delLabel = TRANSLATIONS.tasks?.delete || 'Delete';
-          const delBtn = makeAction('<i class="fas fa-trash-can"></i>', delLabel, async ()=>{
-            if (!confirm(`${TRANSLATIONS.tasks?.deleteConfirm || 'Delete task'} "${t.name}"?`)) return;
+        const info = document.createElement('div'); 
+        info.className = 'task-info';
+        const title = document.createElement('div'); 
+        title.textContent = t.name; 
+        title.style.fontWeight='700';
+        const meta = document.createElement('div');
+        const stateStr = t.state || 'stopped';
+        const translatedState = TRANSLATIONS.tasks?.status?.[stateStr] || stateStr;
+        meta.textContent = `${TRANSLATIONS.tasks?.stateLabel || 'State'}: ${translatedState}${t.hasScript ? ` • ${TRANSLATIONS.tasks?.hasScript || 'has script'}` : ''}`;
+        info.appendChild(title); 
+        info.appendChild(meta);
+        
+        const actions = document.createElement('div'); 
+        actions.className='task-actions';
+        
+        // helper to create an icon+label button
+        function makeAction(icon, labelText, cb, btnClass = ''){
+          const b = document.createElement('button');
+          b.className = 'task-action-btn ' + btnClass;
+          b.innerHTML = `<span class="btn-icon">${icon || ''}</span><span class="btn-text">${labelText}</span>`;
+          b.title = labelText;
+          b.setAttribute('aria-label', labelText);
+          b.addEventListener('click', cb);
+          return b;
+        }
 
-            // Stop updates during delete
-            if (tasksUpdateInterval) { clearInterval(tasksUpdateInterval); tasksUpdateInterval = null; }
-
-            const taskFilePath = `/tasks/${taskId}.json`;
-            const scriptFilePath = `/scripts/${taskId}.lua`;
-
-            const deletePromises = [];
-            deletePromises.push(
-              fetch('/api/files/delete', { method: 'POST', body: new URLSearchParams({ path: taskFilePath }) })
-            );
-
-            if (t.hasScript) {
-              deletePromises.push(
-                fetch('/api/files/delete', { method: 'POST', body: new URLSearchParams({ path: scriptFilePath }) })
-              );
-            }
-
-            const results = await Promise.all(deletePromises);
-            const allOk = results.every(r => r.ok);
-
-            if (allOk) {
-                loadTasksEnhanced(); // Reload immediately after successful delete
-            } else {
-                console.error('Delete failed:', results); 
-                alert('Delete failed'); 
-            }
-            
-            // Restart updates, but only if the page is still active
-            if (document.getElementById('tasks').classList.contains('active')) {
-                tasksUpdateInterval = setInterval(loadTasksEnhanced, 5000);
-            }
-          });
-  
-          // 4. Run/Stop button
-          if (t.state === 'running') {
-            const stopLabel = TRANSLATIONS.tasks?.stop || 'Stop';
-            const stopBtn = makeAction('<i class="fas fa-stop"></i>', stopLabel, async () => {
-              await fetch('/api/tasks/stop', { method: 'POST', body: new URLSearchParams({ id: taskId }) });
-              loadTasksEnhanced(); // Refresh list
-            });
-            actions.appendChild(stopBtn);
-          } else {
-            const runLabel = TRANSLATIONS.tasks?.run || 'Run';
-            const runBtn = makeAction('<i class="fas fa-play"></i>', runLabel, async () => {
-              const response = await fetch('/api/tasks/run', { method: 'POST', body: new URLSearchParams({ id: taskId }) });
-              if (response.ok) {
-                alert(TRANSLATIONS.tasks?.runStarted || 'Run requested');
-                loadTasksEnhanced(); // Refresh list
-              } else {
-                alert('Failed to start task.');
-              }
-            });
-            actions.appendChild(runBtn);
-          }
-  
-          actions.appendChild(editTaskBtn); actions.appendChild(scriptBtn); actions.appendChild(delBtn);
-          card.appendChild(info); card.appendChild(actions);
-          container.appendChild(card);
+        // 1. Edit Task button (rename)
+        const renameLabel = TRANSLATIONS.tasks?.renamePrompt || 'Rename task';
+        const taskId = String(t.id);
+        const editTaskBtn = makeAction('<i class="fas fa-pencil"></i>', renameLabel, async ()=>{
+          const newName = prompt(renameLabel, t.name);
+          if (!newName || newName === t.name) return;
+          const r = await fetch('/api/tasks', { method:'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: new URLSearchParams({ name: newName, id: taskId }) });
+          if (r.ok) loadTasksEnhanced();
+          else { const err = await r.text(); console.error('Rename failed:', r.status, err); alert('Rename failed: ' + (err || r.status)); }
         });
+
+        // 2. Edit Script button
+        const scriptLabel = t.hasScript? (TRANSLATIONS.tasks?.editScript||'Edit script') : (TRANSLATIONS.tasks?.attachScript||'Attach script');
+        const scriptBtn = makeAction('<i class="fas fa-file-alt"></i>', scriptLabel, ()=>{ openScriptEditor(taskId, t.name); });
+
+        // 3. Delete button (deletes both task and script)
+        const delLabel = TRANSLATIONS.tasks?.delete || 'Delete';
+        const delBtn = makeAction('<i class="fas fa-trash-can"></i>', delLabel, async ()=>{
+          if (!confirm(`${TRANSLATIONS.tasks?.deleteConfirm || 'Delete task'} "${t.name}"?`)) return;
+
+          // Stop updates during delete
+          if (tasksUpdateInterval) { clearInterval(tasksUpdateInterval); tasksUpdateInterval = null; }
+
+          const taskFilePath = `/tasks/${taskId}.json`;
+          const scriptFilePath = `/scripts/${taskId}.lua`;
+
+          const deletePromises = [];
+          deletePromises.push(
+            fetch('/api/files/delete', { method: 'POST', body: new URLSearchParams({ path: taskFilePath }) })
+          );
+
+          if (t.hasScript) {
+            deletePromises.push(
+              fetch('/api/files/delete', { method: 'POST', body: new URLSearchParams({ path: scriptFilePath }) })
+            );
+          }
+
+          const results = await Promise.all(deletePromises);
+          const allOk = results.every(r => r.ok);
+
+          if (allOk) {
+              loadTasksEnhanced(); // Reload immediately after successful delete
+          } else {
+              console.error('Delete failed:', results); 
+              alert('Delete failed'); 
+          }
+          
+          // Restart updates, but only if the page is still active
+          if (document.getElementById('tasks').classList.contains('active')) {
+              tasksUpdateInterval = setInterval(loadTasksEnhanced, 5000);
+          }
+        });
+
+        // 4. Run/Stop button - ВАЖНО: исправляем логику отображения кнопок
+        if (t.state === 'running') {
+          // Если задача запущена, показываем кнопку остановки
+          const stopLabel = TRANSLATIONS.tasks?.stop || 'Stop';
+          const stopBtn = makeAction('<i class="fas fa-stop"></i>', stopLabel, async () => { 
+            try {
+              console.log('Stopping task:', taskId);
+              const response = await fetch('/api/tasks/stop', { 
+                method: 'POST', 
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'}, 
+                body: new URLSearchParams({ id: taskId }) 
+              });
+              
+              if (response.ok) {
+                // Оптимистичное обновление UI
+                meta.textContent = `${TRANSLATIONS.tasks?.stateLabel || 'State'}: ${TRANSLATIONS.tasks?.status?.stopped || 'stopped'}${t.hasScript ? ` • ${TRANSLATIONS.tasks?.hasScript || 'has script'}` : ''}`;
+                alert(TRANSLATIONS.tasks?.stopSuccess || 'Task stopped');
+                
+                // Обновляем список через 1 секунду для подтверждения
+                setTimeout(() => {
+                  if (document.getElementById('tasks').classList.contains('active')) {
+                    loadTasksEnhanced();
+                  }
+                }, 1000);
+              } else {
+                const errorText = await response.text();
+                alert('Failed to stop task: ' + errorText);
+              }
+            } catch (error) {
+              console.error('Error stopping task:', error);
+              alert('Error stopping task: ' + error.message);
+            }
+          }, 'stop-btn');
+          actions.appendChild(stopBtn);
+        } else {
+          // Если задача остановлена, показываем кнопку запуска
+          const runLabel = TRANSLATIONS.tasks?.run || 'Run';
+          const runBtn = makeAction('<i class="fas fa-play"></i>', runLabel, async () => { 
+            try {
+              console.log('Running task:', taskId);
+              const response = await fetch('/api/tasks/run', { 
+                method: 'POST', 
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'}, 
+                body: new URLSearchParams({ id: taskId }) 
+              });
+              
+              console.log('Response status:', response.status);
+              const result = await response.text();
+              console.log('Response text:', result);
+              
+              if (response.ok) {
+                try {
+                  const json = JSON.parse(result);
+                  alert(json.message || (TRANSLATIONS.tasks?.runStarted || 'Task started successfully'));
+                  
+                  // Оптимистичное обновление UI
+                  meta.textContent = `${TRANSLATIONS.tasks?.stateLabel || 'State'}: ${TRANSLATIONS.tasks?.status?.running || 'running'}${t.hasScript ? ` • ${TRANSLATIONS.tasks?.hasScript || 'has script'}` : ''}`;
+                  
+                  // Обновляем список через 1 секунду для подтверждения
+                  setTimeout(() => {
+                    if (document.getElementById('tasks').classList.contains('active')) {
+                      loadTasksEnhanced();
+                    }
+                  }, 1000);
+                } catch (e) {
+                  console.error('Error parsing response:', e);
+                  alert(TRANSLATIONS.tasks?.runStarted || 'Task started');
+                  // Все равно обновляем список
+                  setTimeout(() => {
+                    if (document.getElementById('tasks').classList.contains('active')) {
+                      loadTasksEnhanced();
+                    }
+                  }, 1000);
+                }
+              } else {
+                try {
+                  const json = JSON.parse(result);
+                  alert('Failed to start task: ' + (json.error || 'Unknown error'));
+                } catch (e) {
+                  alert('Failed to start task: ' + result);
+                }
+              }
+            } catch (error) {
+              console.error('Error running task:', error);
+              alert('Failed to start task: Network error');
+            }
+          }, 'run-btn');
+          actions.appendChild(runBtn);
+        }
+
+        actions.appendChild(editTaskBtn); 
+        actions.appendChild(scriptBtn); 
+        actions.appendChild(delBtn);
+        card.appendChild(info); 
+        card.appendChild(actions);
+        container.appendChild(card);
       });
-    }
+    }).catch(error => {
+      console.error('Failed to load tasks:', error);
+      const container = document.getElementById('tasksList');
+      container.innerHTML = '<div class="error-state">' + (TRANSLATIONS.tasks?.loadError || 'Failed to load tasks. Please try again.') + '</div>';
+    });
+  }
+  
   // Create task button
   document.getElementById('createTaskBtn')?.addEventListener('click', async ()=>{
-    const name = prompt(TRANSLATIONS.tasks?.createPrompt || 'Task name'); if (!name) return;
-    const r = await fetch('/api/tasks', { method:'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: new URLSearchParams({ name }) });
-    if (r.ok) loadTasksEnhanced();
-    else { const err = await r.text(); console.error('Create task failed:', r.status, err); alert('Create failed: ' + (err || r.status)); }
+    const name = prompt(TRANSLATIONS.tasks?.createPrompt || 'Task name'); 
+    if (!name) return;
+    
+    try {
+      const r = await fetch('/api/tasks', { 
+        method:'POST', 
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'}, 
+        body: new URLSearchParams({ name }) 
+      });
+      
+      if (r.ok) {
+        loadTasksEnhanced();
+      } else { 
+        const err = await r.text(); 
+        console.error('Create task failed:', r.status, err); 
+        alert('Create failed: ' + (err || r.status)); 
+      }
+    } catch (error) {
+      console.error('Error creating task:', error);
+      alert('Error creating task: ' + error.message);
+    }
   });
 
   // Script editor utilities
@@ -477,12 +597,16 @@ document.addEventListener('DOMContentLoaded', ()=>{
     }
     
     // Optionally refresh task name from task API (for title only). This is still useful.
-    const rTask = await fetch(`/api/tasks/${encodeURIComponent(id)}`);
-    if (rTask.ok) {
-        const task = await rTask.json();
-        if (task && task.name) {
-            document.getElementById('editorTitle').textContent = `${TRANSLATIONS.tasks?.scriptFor || 'Script:'} ${task.name}`;
-        }
+    try {
+      const rTask = await fetch(`/api/tasks/${encodeURIComponent(id)}`);
+      if (rTask.ok) {
+          const task = await rTask.json();
+          if (task && task.name) {
+              document.getElementById('editorTitle').textContent = `${TRANSLATIONS.tasks?.scriptFor || 'Script:'} ${task.name}`;
+          }
+      }
+    } catch (e) {
+      console.error('Error fetching task details:', e);
     }
 
     // load builtins
@@ -495,10 +619,19 @@ document.addEventListener('DOMContentLoaded', ()=>{
             li.addEventListener('click', () => { insertAtCursor(scriptEl, fn + '()'); });
             ul.appendChild(li);
         });
+    }).catch(e => {
+      console.error('Failed to load builtins:', e);
     });
+    
     document.getElementById('scriptEditor').style.display = 'flex';
   }
-  document.getElementById('closeEditor')?.addEventListener('click', ()=>{ document.getElementById('scriptEditor').style.display = 'none'; currentEditingTask = null; currentEditingFile = null; });
+  
+  document.getElementById('closeEditor')?.addEventListener('click', ()=>{ 
+    document.getElementById('scriptEditor').style.display = 'none'; 
+    currentEditingTask = null; 
+    currentEditingFile = null; 
+  });
+  
   document.getElementById('saveScriptBtn')?.addEventListener('click', async ()=>{
     const content = document.getElementById('scriptContent').value;
 
@@ -506,18 +639,34 @@ document.addEventListener('DOMContentLoaded', ()=>{
       const taskName = document.getElementById('editorTitle').textContent.replace(`${TRANSLATIONS.tasks?.scriptFor || 'Script:'} `, '');
       const payload = new URLSearchParams({ id: currentEditingTask, name: taskName, script: content });
       const r = await fetch('/api/tasks', { method:'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: payload });
-      if (r.ok){ alert(TRANSLATIONS.alerts?.saved || 'Saved'); document.getElementById('scriptEditor').style.display='none'; loadTasksEnhanced(); }
-      else { const txt = await r.text(); console.error('Save script failed:', r.status, txt); alert('Failed to save: ' + txt); }
+      if (r.ok){ 
+        alert(TRANSLATIONS.alerts?.saved || 'Saved'); 
+        document.getElementById('scriptEditor').style.display='none'; 
+        loadTasksEnhanced(); 
+      } else { 
+        const txt = await r.text(); 
+        console.error('Save script failed:', r.status, txt); 
+        alert('Failed to save: ' + txt); 
+      }
     } else if (currentEditingFile) { // Saving a generic file
       const payload = new URLSearchParams({ path: currentEditingFile, content: content });
       const r = await fetch('/api/files/save', { method:'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: payload });
-      if (r.ok){ alert(TRANSLATIONS.alerts?.saved || 'Saved'); document.getElementById('scriptEditor').style.display='none'; loadFiles(currentFileManagerPath); }
-      else { const txt = await r.text(); console.error('Save file failed:', r.status, txt); alert('Failed to save: ' + txt); }
+      if (r.ok){ 
+        alert(TRANSLATIONS.alerts?.saved || 'Saved'); 
+        document.getElementById('scriptEditor').style.display='none'; 
+        loadFiles(currentFileManagerPath); 
+      } else { 
+        const txt = await r.text(); 
+        console.error('Save file failed:', r.status, txt); 
+        alert('Failed to save: ' + txt); 
+      }
     }
   });
 
   function insertAtCursor(el, text){
-    const start = el.selectionStart || 0; const end = el.selectionEnd || 0; const v = el.value;
+    const start = el.selectionStart || 0; 
+    const end = el.selectionEnd || 0; 
+    const v = el.value;
     el.value = v.slice(0,start) + text + v.slice(end);
     el.selectionStart = el.selectionEnd = start + text.length;
     el.focus();
@@ -526,21 +675,36 @@ document.addEventListener('DOMContentLoaded', ()=>{
   document.getElementById('saveLang').addEventListener('click', async ()=>{
     const lang = document.getElementById('language').value;
     const r = await fetch('/api/setlanguage', { method:'POST', body: new URLSearchParams({lang}) });
-    if (r.ok){ await loadTranslations(lang); alert(TRANSLATIONS.alerts?.saved || 'Saved'); }
+    if (r.ok){ 
+      await loadTranslations(lang); 
+      alert(TRANSLATIONS.alerts?.saved || 'Saved'); 
+    } else {
+      alert('Failed to save language');
+    }
   });
 
   // license save
   document.getElementById('saveLicenseBtn')?.addEventListener('click', async ()=>{
     const key = document.getElementById('licenseKey').value;
     const r = await fetch('/api/setlicense', { method:'POST', body: new URLSearchParams({key}) });
-    if (r.ok) alert(TRANSLATIONS.alerts?.saved || 'Saved');
+    if (r.ok) {
+      alert(TRANSLATIONS.alerts?.saved || 'Saved');
+      originalLicenseKeyValue = key;
+    } else {
+      alert('Failed to save license key');
+    }
   });
 
   // theme save
   document.getElementById('saveTheme')?.addEventListener('click', async ()=>{
     const theme = document.getElementById('themeSelect').value;
     const r = await fetch('/api/settheme', { method:'POST', body: new URLSearchParams({theme}) });
-    if (r.ok){ document.getElementById('theme').href = `/themes/${theme}.css`; alert(TRANSLATIONS.alerts?.themeSaved || 'Theme saved'); }
+    if (r.ok){ 
+      document.getElementById('theme').href = `/themes/${theme}.css`; 
+      alert(TRANSLATIONS.alerts?.themeSaved || 'Theme saved'); 
+    } else {
+      alert('Failed to save theme');
+    }
   });
 
   // uploads
@@ -551,6 +715,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
     if (!file) return alert(TRANSLATIONS.alerts?.selectFile || 'Select file');
     const r = await fetch('/api/upload/firmware', { method:'POST', body: fd });
     if (r.ok) alert(TRANSLATIONS.alerts?.uploadStarted || 'Upload started. Device will restart after update.');
+    else alert('Upload failed');
   });
 
   document.getElementById('uploadFS').addEventListener('submit', async (e)=>{
@@ -560,13 +725,15 @@ document.addEventListener('DOMContentLoaded', ()=>{
     if (!file) return alert(TRANSLATIONS.alerts?.selectFile || 'Select file');
     const r = await fetch('/api/upload/fs', { method:'POST', body: fd });
     if (r.ok) alert(TRANSLATIONS.alerts?.fileUploaded || 'File uploaded');
+    else alert('Upload failed');
   });
 
   // wifi form
   document.getElementById('wifiForm').addEventListener('submit', async (e)=>{
     e.preventDefault();
     const fd = new FormData(e.target);
-    const ssid = fd.get('ssid'); const pass = fd.get('pass');
+    const ssid = fd.get('ssid'); 
+    const pass = fd.get('pass');
     const r = await fetch('/api/wifi', { method:'POST', body: new URLSearchParams({ssid, pass}) });
     const j = await r.json();
     document.getElementById('wifiResult').innerText = j.ok ? (TRANSLATIONS.wifi?.connected || 'Connected') : (TRANSLATIONS.wifi?.failed || 'Failed to connect');
@@ -576,7 +743,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
   document.getElementById('rebootForm').addEventListener('submit', (e)=>{
     e.preventDefault();
     const fd = new FormData(e.target);
-    const type = fd.get('type'); const delay = fd.get('delay');
+    const type = fd.get('type'); 
+    const delay = fd.get('delay');
     fetch('/api/reboot', { method:'POST', body: new URLSearchParams({type, delay}) });
     alert('Reboot scheduled');
   });
@@ -586,6 +754,19 @@ document.addEventListener('DOMContentLoaded', ()=>{
   loadThemes();
   loadSystem();
   loadInfo();
+
+  // Добавляем обработчики фокуса для поля лицензионного ключа
+  const licenseKeyField = document.getElementById('licenseKey');
+  if (licenseKeyField) {
+    licenseKeyField.addEventListener('focus', () => {
+      licenseKeyHasFocus = true;
+      originalLicenseKeyValue = licenseKeyField.value;
+    });
+    
+    licenseKeyField.addEventListener('blur', () => {
+      licenseKeyHasFocus = false;
+    });
+  }
 
   // preview + autosave when user changes selects (apply immediately, and persist to device)
   const langSel = document.getElementById('language');
@@ -598,11 +779,23 @@ document.addEventListener('DOMContentLoaded', ()=>{
       const r = await fetch('/api/setlanguage', { method:'POST', body: new URLSearchParams({lang:newLang}) });
       if (!r.ok) {
         console.warn('Failed to save language');
-        // reload from device to revert
-        loadSystem();
+        // reload from device to revert - но не обновляем поле лицензии если пользователь его редактирует
+        const tempLicenseKey = document.getElementById('licenseKey').value;
+        await loadSystem();
+        // Восстанавливаем значение поля лицензии, если пользователь его редактировал
+        if (licenseKeyHasFocus) {
+          document.getElementById('licenseKey').value = tempLicenseKey;
+        }
         alert(TRANSLATIONS.alerts?.saved === undefined ? 'Failed to save language' : TRANSLATIONS.alerts?.saved);
       }
-    }catch(err){ console.warn('Error saving language', err); loadSystem(); }
+    }catch(err){ 
+      console.warn('Error saving language', err); 
+      const tempLicenseKey = document.getElementById('licenseKey').value;
+      await loadSystem();
+      if (licenseKeyHasFocus) {
+        document.getElementById('licenseKey').value = tempLicenseKey;
+      }
+    }
   });
 
   const themeSel = document.getElementById('themeSelect');
@@ -615,16 +808,79 @@ document.addEventListener('DOMContentLoaded', ()=>{
       const r = await fetch('/api/settheme', { method:'POST', body: new URLSearchParams({theme:newTheme}) });
       if (!r.ok) {
         console.warn('Failed to save theme');
-        // revert to device state
-        loadSystem();
+        // revert to device state - но не обновляем поле лицензии если пользователь его редактирует
+        const tempLicenseKey = document.getElementById('licenseKey').value;
+        await loadSystem();
+        // Восстанавливаем значение поля лицензии, если пользователь его редактировал
+        if (licenseKeyHasFocus) {
+          document.getElementById('licenseKey').value = tempLicenseKey;
+        }
         alert(TRANSLATIONS.alerts?.themeSaved === undefined ? 'Failed to save theme' : TRANSLATIONS.alerts?.themeSaved);
         if (link && prev) link.href = prev;
       }
-    }catch(err){ console.warn('Error saving theme', err); loadSystem(); if (link && prev) link.href = prev; }
+    }catch(err){ 
+      console.warn('Error saving theme', err); 
+      const tempLicenseKey = document.getElementById('licenseKey').value;
+      await loadSystem();
+      if (licenseKeyHasFocus) {
+        document.getElementById('licenseKey').value = tempLicenseKey;
+      }
+      if (link && prev) link.href = prev; 
+    }
   });
 });
 
 document.getElementById('autoUpdateCheckbox')?.addEventListener('change', async (e) => {
   const enabled = e.target.checked;
   await fetch('/api/autoupdate', { method: 'POST', body: new URLSearchParams({ enabled: enabled }) });
+});
+
+// SSE for real-time updates
+const eventSource = new EventSource('/events');
+
+eventSource.addEventListener('tasks_update', function(e) {
+  console.log('Task update received:', e.data);
+  // If tasks page is active, reload tasks
+  if (document.getElementById('tasks').classList.contains('active')) {
+    console.log('Refreshing tasks list due to SSE event');
+    loadTasksEnhanced();
+  }
+  // If home page is active, reload info
+  if (document.getElementById('home').classList.contains('active')) {
+    loadInfo();
+  }
+});
+
+eventSource.addEventListener('keepalive', function(e) {
+  console.log('SSE keepalive received');
+});
+
+eventSource.addEventListener('open', function(e) {
+  console.log('SSE connection opened');
+});
+
+eventSource.onerror = function(e) {
+  console.error('EventSource failed:', e);
+  // Try to reconnect after 5 seconds
+  setTimeout(() => {
+    console.log('Reconnecting SSE...');
+    eventSource.close();
+    // Create new connection
+    const newEventSource = new EventSource('/events');
+    newEventSource.addEventListener('tasks_update', function(e) {
+      if (document.getElementById('tasks').classList.contains('active')) {
+        loadTasksEnhanced();
+      }
+      if (document.getElementById('home').classList.contains('active')) {
+        loadInfo();
+      }
+    });
+  }, 5000);
+};
+
+// Clean up on page unload
+window.addEventListener('beforeunload', function() {
+  eventSource.close();
+  if (tasksUpdateInterval) clearInterval(tasksUpdateInterval);
+  if (infoUpdateInterval) clearInterval(infoUpdateInterval);
 });
