@@ -86,3 +86,28 @@ A modern, responsive UI with a sidebar menu that displays correctly on both desk
     ```sh
     pio run --target uploadfs
     ```
+
+### Example Lua Script
+
+Here is an example of a simple cyclic script that uses the available built-in functions. This script will blink the built-in LED and log messages to the serial port every 2 seconds.
+
+```lua
+-- This is an example of a cyclic task.
+-- It will run indefinitely until the device is rebooted.
+
+local led_on = true
+
+log("Cyclic task has started!")
+
+-- Infinite loop
+while true do
+  log("Toggling the LED...")
+  
+  -- Toggle the LED state
+  setLED(led_on)
+  led_on = not led_on
+  
+  -- Wait for 2 seconds before the next iteration
+  delay(2000)
+end
+```

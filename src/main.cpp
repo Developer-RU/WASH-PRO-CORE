@@ -67,10 +67,6 @@ void setup() {
     request->send(200, "application/json", sys.getInfoJSON());
   });
 
-
-
-
-
   // API endpoint to run a task's script.
   server.on("/api/tasks/run", HTTP_POST, [](AsyncWebServerRequest *request){
 
@@ -98,7 +94,6 @@ void setup() {
       request->send(400, "application/json", "{\"error\":\"missing id\"}");
     } 
   });
-
   
   // API endpoint to get the list of all tasks.
   server.on("/api/tasks", HTTP_GET, [](AsyncWebServerRequest *request){
