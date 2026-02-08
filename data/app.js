@@ -411,7 +411,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
           });
   
           // 4. Run/Stop button
-          if (t.state === 'running') {
+          if (t.state === 'running') { 
             const stopLabel = TRANSLATIONS.tasks?.stop || 'Stop';
             const stopBtn = makeAction('<i class="fas fa-stop"></i>', stopLabel, async () => {
               await fetch('/api/tasks/stop', { method: 'POST', body: new URLSearchParams({ id: taskId }) });
