@@ -58,33 +58,30 @@ void setup() {
   // CORS headers for all API responses
   DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
   DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "Content-Type");
+  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
-  // --- API Endpoints ---
-
-  // API endpoint to get general system information.
-  server.on("/api/info", HTTP_GET, [](AsyncWebServerRequest *request){
-    // This is a simplified way to get running task count.
-    // A more robust solution might involve TaskManager caching the count.
-    DynamicJsonDocument doc(4096);
-    deserializeJson(doc, tasks.getTasksJSON());
-    int runningTasks = doc["runningTasks"] | 0;
-
-    request->send(200, "application/json", sys.getInfoJSON(runningTasks));
+  // Handle CORS preflight requests
+  server.on("/*", HTTP_OPTIONS, [](AsyncWebServerRequest *request) {
+    request->send(204);
   });
 
   // API endpoint to run a task's script.
   server.on("/api/tasks/run", HTTP_POST, [](AsyncWebServerRequest *request){
-    if (!request->hasParam("id", true)) {
-      request->send(400, "application/json", "{\"error\":\"missing id\"}");
-      return;
-    }
-    String id = request->getParam("id", true)->value();      
-
     if (request->hasParam("id", true)) {
-      String id = request->getParam("id", true)->value();      
+      String id = request->getParam("id", true)->value();
       bool ok = tasks.runTask(id);
-      request->send(ok ? 202 : 500, "application/json", ok ? "{\"ok\":true, \"message\":\"Task start requested.\"}" : "{\"error\":\"failed to start task\"}");
+      request->send(ok ? 200 : 500, "application/json", ok ? "{\"ok\":true}" : "{\"error\":\"failed to run\"}");
+    } else {
+      request->send(400, "application/json", "{\"error\":\"missing id\"}");
+    }
+  });
+
+  // API endpoint to stop a task's script.
+  server.on("/api/tasks/stop", HTTP_POST, [](AsyncWebServerRequest *request){
+    if (request->hasParam("id", true)) {
+      String id = request->getParam("id", true)->value();
+      bool ok = tasks.stopTask(id);
+      request->send(ok ? 200 : 500, "application/json", ok ? "{\"ok\":true}" : "{\"error\":\"failed to stop\"}");
     } else {
       request->send(400, "application/json", "{\"error\":\"missing id\"}");
     }
@@ -92,40 +89,18 @@ void setup() {
 
   // API endpoint to delete a task.
   server.on("/api/tasks/delete", HTTP_POST, [](AsyncWebServerRequest *request){
-    if (!request->hasParam("id", true)) {
-      request->send(400, "application/json", "{\"error\":\"missing id\"}");
-      return;
-    }
-    String id = request->getParam("id", true)->value();
     if (request->hasParam("id", true)) {
       String id = request->getParam("id", true)->value();
       bool ok = tasks.deleteTask(id);
       request->send(ok ? 200 : 500, "application/json", ok ? "{\"ok\":true}" : "{\"error\":\"failed to delete\"}");
     } else {
       request->send(400, "application/json", "{\"error\":\"missing id\"}");
-    } 
-  });
-  
-  // API endpoint to get the list of all tasks.
-  server.on("/api/tasks", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(200, "application/json", tasks.getTasksJSON());
-  });
-
-  // API endpoint to get a single task with its script.
-  // This uses a regex to capture the ID from the path, e.g., /api/tasks/12345.json
-  // The negative lookahead prevents matching sub-paths like 'run' or 'delete'.
-  server.on("^\\/api\\/tasks\\/(?!run$|delete$)([a-zA-Z0-9_.-]+)$", HTTP_GET, [](AsyncWebServerRequest *request) {
-    String id = request->pathArg(0);
-    if (!id.isEmpty()) {
-      String json = tasks.getTaskWithScriptJSON(id);
-      if (json.length() > 0) {
-        request->send(200, "application/json", json);
-      } else {
-        request->send(404, "application/json", "{\"error\":\"task not found\"}");
-      }
     }
   });
 
+
+
+  
   // API endpoint to handle creating, renaming, and saving scripts for tasks.
   server.on("/api/tasks", HTTP_POST, [](AsyncWebServerRequest *request){
     String id = request->hasParam("id", true) ? request->getParam("id", true)->value() : "";
@@ -162,10 +137,50 @@ void setup() {
     }
   });
 
+// API endpoint to get the list of all tasks.
+  server.on("/api/tasks", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(200, "application/json", tasks.getTasksJSON());
+  });
+
+  // API endpoint to get a single task with its script.
+  // This uses a regex to capture the ID from the path, e.g., /api/tasks/12345.json
+  server.on("^\\/api\\/tasks\\/([a-zA-Z0-9_.-]+)$", HTTP_GET, [](AsyncWebServerRequest *request) {
+    String id = request->pathArg(0);
+    if (!id.isEmpty()) {
+      String json = tasks.getTaskWithScriptJSON(id);
+      if (json.length() > 0) {
+        request->send(200, "application/json", json);
+      } else {
+        request->send(404, "application/json", "{\"error\":\"task not found\"}");
+      }
+    }
+  });
+
+
+
+
+
+
+  // API endpoint to get general system information.
+  server.on("/api/info", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(200, "application/json", sys.getInfoJSON());
+  });
+
+  
+
+
+
   // API endpoint to provide a list of built-in Lua functions for the script editor.
   server.on("/api/builtins", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(200, "application/json", "[\"log\",\"setLED\",\"delay\",\"startTask\",\"stopTask\"]");
   });
+
+
+
+
+
+
+
 
   /**
    * @brief A lambda function to recursively delete a directory and its contents.
@@ -391,23 +406,7 @@ void setup() {
     request->send(200, "application/json", "{\"ok\":true}");
   });
 
-  // --- Final Setup ---
-  // Add the SSE handler for real-time updates.
-  events.onConnect([](AsyncEventSourceClient *client){
-    if(client->lastId()){
-      Serial.printf("SSE Client reconnected! Last message ID: %s\n", client->lastId());
-    }
-    client->send("hello", "connected", millis(), 1000);
-  });
-  server.addHandler(&events);
-
-  // Handle not found and CORS preflight
-  server.onNotFound([](AsyncWebServerRequest *request) {
-    if (request->method() == HTTP_OPTIONS) request->send(200);
-    else request->send(404, "text/plain", "Not found");
-  });
-
-  // Add the Web UI handler. This must be last as it's a catch-all for static files.
+  // Web UI
   ui.begin(&server);
 
   server.begin();

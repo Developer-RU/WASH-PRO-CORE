@@ -341,13 +341,13 @@ document.addEventListener('DOMContentLoaded', ()=>{
           const info = document.createElement('div'); info.className = 'task-info';
           const title = document.createElement('div'); title.textContent = t.name; title.style.fontWeight='700';
           const meta = document.createElement('div');
-          const stateStr = t.state || 'unknown';
+          const stateStr = t.state === 'running' ? 'running' : 'stopped';
           const translatedState = TRANSLATIONS.tasks?.status?.[stateStr] || stateStr;
           meta.textContent = `${TRANSLATIONS.tasks?.stateLabel || 'State'}: ${translatedState}${t.hasScript ? ` • ${TRANSLATIONS.tasks?.hasScript || 'has script'}` : ''}`;
           info.appendChild(title); info.appendChild(meta);
           const actions = document.createElement('div'); actions.className='task-actions';
           // helper to create an icon+label button
-          function makeAction(icon, labelText, cb){
+          function makeAction(icon, labelText, cb, btnClass = ''){
             const b = document.createElement('button');
             b.className = 'task-action-btn';
             b.innerHTML = `<span class="btn-icon">${icon || ''}</span><span class="btn-text">${labelText}</span>`;
@@ -400,21 +400,29 @@ document.addEventListener('DOMContentLoaded', ()=>{
             }
           });
   
-          // 4. Run button
-          const runLabel = TRANSLATIONS.tasks?.run || 'Run';
-          const runBtn = makeAction('<i class="fas fa-play"></i>', runLabel, async ()=>{ 
-            const response = await fetch('/api/tasks/run', { method:'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: new URLSearchParams({ id: taskId }) }); 
-            if (response.ok) {
-              // Optimistically update the UI immediately
-              const runningState = TRANSLATIONS.tasks?.status?.running || 'running';
-              meta.textContent = `${TRANSLATIONS.tasks?.stateLabel || 'State'}: ${runningState}${t.hasScript ? ` • ${TRANSLATIONS.tasks?.hasScript || 'has script'}` : ''}`;
-              alert(TRANSLATIONS.tasks?.runStarted || 'Run requested');
-            } else {
-              alert('Failed to start task.');
-            }
-          });
+          // 4. Run/Stop button
+          if (t.state === 'running') { 
+            const stopLabel = TRANSLATIONS.tasks?.stop || 'Stop';
+            const stopBtn = makeAction('<i class="fas fa-stop"></i>', stopLabel, async () => {
+              await fetch('/api/tasks/stop', { method: 'POST', body: new URLSearchParams({ id: taskId }) });
+              loadTasksEnhanced(); // Refresh list
+            });
+            actions.appendChild(stopBtn);
+          } else {
+            const runLabel = TRANSLATIONS.tasks?.run || 'Run';
+            const runBtn = makeAction('<i class="fas fa-play"></i>', runLabel, async () => {
+              const response = await fetch('/api/tasks/run', { method: 'POST', body: new URLSearchParams({ id: taskId }) });
+              if (response.ok) {
+                alert(TRANSLATIONS.tasks?.runStarted || 'Run requested');
+                loadTasksEnhanced(); // Refresh list
+              } else {
+                alert('Failed to start task.');
+              }
+            });
+            actions.appendChild(runBtn);
+          }
   
-          actions.appendChild(editTaskBtn); actions.appendChild(scriptBtn); actions.appendChild(runBtn); actions.appendChild(delBtn);
+          actions.appendChild(editTaskBtn); actions.appendChild(scriptBtn); actions.appendChild(delBtn);
           card.appendChild(info); card.appendChild(actions);
           container.appendChild(card);
         });
