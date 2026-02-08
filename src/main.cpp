@@ -1,12 +1,7 @@
 /**
  * @file main.cpp
  * @author Masyukov Pavel
- * @brief Main application file for the WASH-PRO project.
- * @version 1.0.0
- * @see https://github.com/pavelmasyukov/WASH-PRO-CORE
- *
- * This file contains the main setup and loop functions for the ESP32 application.
- * It initializes the system, tasks, Wi-Fi, and the web server with all its API endpoints.
+ * @brief Main application file for the WASH-PRO project. Initializes all subsystems and web server endpoints.
  */
 #include <Arduino.h>
 #include <WiFi.h>
@@ -14,6 +9,10 @@
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include <map>
+// Enable regular expression support for ESPAsyncWebServer routes
+#define ASYNCWEBSERVER_REGEX
+
+#include <ArduinoJson.h>
 #include "SystemManager.h"
 #include "TaskManager.h"
 #include "WebUI.h"
@@ -23,6 +22,7 @@ TaskManager tasks; ///< Global instance of the TaskManager.
 WebUI ui;          ///< Global instance of the WebUI manager.
 
 AsyncWebServer server(80); ///< Global instance of the asynchronous web server.
+AsyncEventSource events("/events"); ///< Global instance for Server-Sent Events.
 
 /**
  * @brief Setup function, runs once on startup.
@@ -32,18 +32,20 @@ AsyncWebServer server(80); ///< Global instance of the asynchronous web server.
  */
 void setup() {
   Serial.begin(115200);
-  delay(1000);
-  Serial.println("Starting WASH-PRO-CORE...");
+  while (!Serial) { delay(10); } // Wait for serial connection
+  Serial.println("\n\n=== WASH-PRO-CORE Starting ===");
 
-  if (!LittleFS.begin()) {
-    Serial.println("LittleFS mount failed");
+  // Initialize LittleFS
+  if (!LittleFS.begin(false)) { // false = do not format on fail
+    Serial.println("LittleFS Mount Failed. It may need to be formatted.");
+    // You might want to add a way to format the filesystem, e.g., on a specific boot condition.
   } else {
-    Serial.println("LittleFS mounted");
+    Serial.println("LittleFS Mounted.");
   }
 
   sys.begin();
-  tasks.begin();
-
+  tasks.begin(&events); // Pass the events object to the task manager
+  
   // Start as Access Point by default
   String apName = "WASH-PRO-CORE";
   apName += "-";
@@ -55,14 +57,49 @@ void setup() {
   IPAddress ip = WiFi.softAPIP();
   Serial.printf("AP started: %s @ %s\n", apName.c_str(), ip.toString().c_str());
 
-  // Web UI
-  ui.begin(&server);
+  // CORS headers for all API responses
+  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
+  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "Content-Type");
 
   // API endpoint to get general system information.
   server.on("/api/info", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(200, "application/json", sys.getInfoJSON());
   });
 
+
+
+
+
+  // API endpoint to run a task's script.
+  server.on("/api/tasks/run", HTTP_POST, [](AsyncWebServerRequest *request){
+
+    Serial.println("Running task");
+
+    if (request->hasParam("id", true)) {
+      String id = request->getParam("id", true)->value();      
+      bool ok = tasks.runTask(id);
+      request->send(ok ? 202 : 500, "application/json", ok ? "{\"ok\":true, \"message\":\"Task start requested.\"}" : "{\"error\":\"failed to start task\"}");
+    } else {
+      request->send(400, "application/json", "{\"error\":\"missing id\"}");
+    }
+  });
+
+  // API endpoint to delete a task.
+  server.on("/api/tasks/delete", HTTP_POST, [](AsyncWebServerRequest *request){
+
+    Serial.println("Deleting task");
+
+    if (request->hasParam("id", true)) {
+      String id = request->getParam("id", true)->value();
+      bool ok = tasks.deleteTask(id);
+      request->send(ok ? 200 : 500, "application/json", ok ? "{\"ok\":true}" : "{\"error\":\"failed to delete\"}");
+    } else {
+      request->send(400, "application/json", "{\"error\":\"missing id\"}");
+    } 
+  });
+
+  
   // API endpoint to get the list of all tasks.
   server.on("/api/tasks", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(200, "application/json", tasks.getTasksJSON());
@@ -70,7 +107,8 @@ void setup() {
 
   // API endpoint to get a single task with its script.
   // This uses a regex to capture the ID from the path, e.g., /api/tasks/12345.json
-  server.on("^\\/api\\/tasks\\/([a-zA-Z0-9_.-]+)$", HTTP_GET, [](AsyncWebServerRequest *request) {
+  // Added negative lookahead to prevent matching 'run' or 'delete'
+  server.on("^\\/api\\/tasks\\/(?!run$|delete$)([a-zA-Z0-9_.-]+)$", HTTP_GET, [](AsyncWebServerRequest *request) {
     String id = request->pathArg(0);
     if (!id.isEmpty()) {
       String json = tasks.getTaskWithScriptJSON(id);
@@ -81,7 +119,7 @@ void setup() {
       }
     }
   });
-
+  
   // API endpoint to handle creating, renaming, and saving scripts for tasks.
   server.on("/api/tasks", HTTP_POST, [](AsyncWebServerRequest *request){
     String id = request->hasParam("id", true) ? request->getParam("id", true)->value() : "";
@@ -118,34 +156,10 @@ void setup() {
     }
   });
 
-  // API endpoint to run a task's script.
-  server.on("/api/tasks/run", HTTP_POST, [](AsyncWebServerRequest *request){
-    if (request->hasParam("id", true)) {
-      String id = request->getParam("id", true)->value();
-      bool ok = tasks.runTask(id);
-      request->send(ok ? 200 : 500, "application/json", ok ? "{\"ok\":true}" : "{\"error\":\"failed to run\"}");
-    } else {
-      request->send(400, "application/json", "{\"error\":\"missing id\"}");
-    }
-  });
-
-  // API endpoint to delete a task.
-  server.on("/api/tasks/delete", HTTP_POST, [](AsyncWebServerRequest *request){
-    if (request->hasParam("id", true)) {
-      String id = request->getParam("id", true)->value();
-      bool ok = tasks.deleteTask(id);
-      request->send(ok ? 200 : 500, "application/json", ok ? "{\"ok\":true}" : "{\"error\":\"failed to delete\"}");
-    } else {
-      request->send(400, "application/json", "{\"error\":\"missing id\"}");
-    }
-  });
-
   // API endpoint to provide a list of built-in Lua functions for the script editor.
   server.on("/api/builtins", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(200, "application/json", "[\"log\",\"setLED\",\"delay\",\"startTask\",\"stopTask\"]");
   });
-
-
 
   /**
    * @brief A lambda function to recursively delete a directory and its contents.
@@ -180,7 +194,7 @@ void setup() {
       path = request->arg("path");
     }
     if (!path.startsWith("/")) {
-      path = "/" + path;
+      path = "/" + path; // Ensure path is absolute
     }
 
     DynamicJsonDocument doc(4096);
@@ -206,6 +220,7 @@ void setup() {
 
   // API endpoint to delete a file or directory.
   server.on("/api/files/delete", HTTP_POST, [deleteRecursive](AsyncWebServerRequest *request){
+
     if (request->hasParam("path", true)) {
       String path = request->getParam("path", true)->value();
       if (path.startsWith("/") && LittleFS.exists(path)) {
@@ -362,6 +377,25 @@ void setup() {
     sys.scheduleReboot(delaySec, graceful);
     request->send(200, "application/json", "{\"ok\":true}");
   });
+
+  // --- Final Setup ---
+  // Add the SSE handler for real-time updates.
+  events.onConnect([](AsyncEventSourceClient *client){
+    if(client->lastId()){
+      Serial.printf("SSE Client reconnected! Last message ID: %s\n", client->lastId());
+    }
+    client->send("hello!", NULL, millis(), 1000);
+  });
+  server.addHandler(&events);
+
+  // Handle not found and CORS preflight
+  server.onNotFound([](AsyncWebServerRequest *request) {
+    if (request->method() == HTTP_OPTIONS) request->send(200);
+    else request->send(404, "text/plain", "Not found");
+  });
+
+  // Add the Web UI handler. This should be last as it's a catch-all for static files.
+  ui.begin(&server);
 
   server.begin();
 }

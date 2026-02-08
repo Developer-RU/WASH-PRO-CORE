@@ -9,6 +9,7 @@
 #include <Update.h>
 #include <LittleFS.h>
 #include <WiFi.h>
+#include <ESPAsyncWebServer.h>
 #include <esp_system.h>
 
 /**
