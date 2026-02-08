@@ -55,33 +55,52 @@ void setup() {
   IPAddress ip = WiFi.softAPIP();
   Serial.printf("AP started: %s @ %s\n", apName.c_str(), ip.toString().c_str());
 
-  // Web UI
-  ui.begin(&server);
+  // CORS headers for all API responses
+  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
+  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
-  // API endpoint to get general system information.
-  server.on("/api/info", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(200, "application/json", sys.getInfoJSON());
+  // Handle CORS preflight requests
+  server.on("/*", HTTP_OPTIONS, [](AsyncWebServerRequest *request) {
+    request->send(204);
   });
 
-  // API endpoint to get the list of all tasks.
-  server.on("/api/tasks", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(200, "application/json", tasks.getTasksJSON());
-  });
-
-  // API endpoint to get a single task with its script.
-  // This uses a regex to capture the ID from the path, e.g., /api/tasks/12345.json
-  server.on("^\\/api\\/tasks\\/([a-zA-Z0-9_.-]+)$", HTTP_GET, [](AsyncWebServerRequest *request) {
-    String id = request->pathArg(0);
-    if (!id.isEmpty()) {
-      String json = tasks.getTaskWithScriptJSON(id);
-      if (json.length() > 0) {
-        request->send(200, "application/json", json);
-      } else {
-        request->send(404, "application/json", "{\"error\":\"task not found\"}");
-      }
+  // API endpoint to run a task's script.
+  server.on("/api/tasks/run", HTTP_POST, [](AsyncWebServerRequest *request){
+    if (request->hasParam("id", true)) {
+      String id = request->getParam("id", true)->value();
+      bool ok = tasks.runTask(id);
+      request->send(ok ? 200 : 500, "application/json", ok ? "{\"ok\":true}" : "{\"error\":\"failed to run\"}");
+    } else {
+      request->send(400, "application/json", "{\"error\":\"missing id\"}");
     }
   });
 
+  // API endpoint to stop a task's script.
+  server.on("/api/tasks/stop", HTTP_POST, [](AsyncWebServerRequest *request){
+    if (request->hasParam("id", true)) {
+      String id = request->getParam("id", true)->value();
+      bool ok = tasks.stopTask(id);
+      request->send(ok ? 200 : 500, "application/json", ok ? "{\"ok\":true}" : "{\"error\":\"failed to stop\"}");
+    } else {
+      request->send(400, "application/json", "{\"error\":\"missing id\"}");
+    }
+  });
+
+  // API endpoint to delete a task.
+  server.on("/api/tasks/delete", HTTP_POST, [](AsyncWebServerRequest *request){
+    if (request->hasParam("id", true)) {
+      String id = request->getParam("id", true)->value();
+      bool ok = tasks.deleteTask(id);
+      request->send(ok ? 200 : 500, "application/json", ok ? "{\"ok\":true}" : "{\"error\":\"failed to delete\"}");
+    } else {
+      request->send(400, "application/json", "{\"error\":\"missing id\"}");
+    }
+  });
+
+
+
+  
   // API endpoint to handle creating, renaming, and saving scripts for tasks.
   server.on("/api/tasks", HTTP_POST, [](AsyncWebServerRequest *request){
     String id = request->hasParam("id", true) ? request->getParam("id", true)->value() : "";
@@ -118,32 +137,48 @@ void setup() {
     }
   });
 
-  // API endpoint to run a task's script.
-  server.on("/api/tasks/run", HTTP_POST, [](AsyncWebServerRequest *request){
-    if (request->hasParam("id", true)) {
-      String id = request->getParam("id", true)->value();
-      bool ok = tasks.runTask(id);
-      request->send(ok ? 200 : 500, "application/json", ok ? "{\"ok\":true}" : "{\"error\":\"failed to run\"}");
-    } else {
-      request->send(400, "application/json", "{\"error\":\"missing id\"}");
+// API endpoint to get the list of all tasks.
+  server.on("/api/tasks", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(200, "application/json", tasks.getTasksJSON());
+  });
+
+  // API endpoint to get a single task with its script.
+  // This uses a regex to capture the ID from the path, e.g., /api/tasks/12345.json
+  server.on("^\\/api\\/tasks\\/([a-zA-Z0-9_.-]+)$", HTTP_GET, [](AsyncWebServerRequest *request) {
+    String id = request->pathArg(0);
+    if (!id.isEmpty()) {
+      String json = tasks.getTaskWithScriptJSON(id);
+      if (json.length() > 0) {
+        request->send(200, "application/json", json);
+      } else {
+        request->send(404, "application/json", "{\"error\":\"task not found\"}");
+      }
     }
   });
 
-  // API endpoint to delete a task.
-  server.on("/api/tasks/delete", HTTP_POST, [](AsyncWebServerRequest *request){
-    if (request->hasParam("id", true)) {
-      String id = request->getParam("id", true)->value();
-      bool ok = tasks.deleteTask(id);
-      request->send(ok ? 200 : 500, "application/json", ok ? "{\"ok\":true}" : "{\"error\":\"failed to delete\"}");
-    } else {
-      request->send(400, "application/json", "{\"error\":\"missing id\"}");
-    }
+
+
+
+
+
+  // API endpoint to get general system information.
+  server.on("/api/info", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(200, "application/json", sys.getInfoJSON());
   });
+
+  
+
+
 
   // API endpoint to provide a list of built-in Lua functions for the script editor.
   server.on("/api/builtins", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(200, "application/json", "[\"log\",\"setLED\",\"delay\",\"startTask\",\"stopTask\"]");
   });
+
+
+
+
+
 
 
 
@@ -362,6 +397,9 @@ void setup() {
     sys.scheduleReboot(delaySec, graceful);
     request->send(200, "application/json", "{\"ok\":true}");
   });
+
+  // Web UI
+  ui.begin(&server);
 
   server.begin();
 }

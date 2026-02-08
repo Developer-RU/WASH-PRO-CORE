@@ -193,45 +193,20 @@ bool TaskManager::saveScript(const String &id, const String &name, const String 
 }
 
 /**
- * @brief Runs a specific task, executing its Lua script if it exists.
+ * @brief Static task runner for executing a Lua script.
+ * This function is executed in its own FreeRTOS task.
+ * @param pvParameters Pointer to LuaTaskParams struct.
  */
-bool TaskManager::runTask(const String &id) {
-  String baseId = id;
-  if (baseId.endsWith(".json")) {
-    baseId.remove(baseId.length() - 5);
-  }
+void TaskManager::_luaTaskRunner(void* pvParameters) {
+  LuaTaskParams* params = (LuaTaskParams*)pvParameters;
+  TaskManager* self = params->instance;
+  String taskId = params->taskId;
 
-  // 1. Set task state to "running"
-  String tpath = String("/tasks/") + baseId + ".json";
-  if (!LittleFS.exists(tpath)) {
-    Serial.printf("Cannot run task, not found: %s\n", tpath.c_str());
-    return false;
-  }
+  // Get script content
+  String scriptContent = self->getScript(taskId);
 
-  DynamicJsonDocument doc(1024);
-  File tf = LittleFS.open(tpath, FILE_READ);
-  if (tf) {
-    deserializeJson(doc, tf);
-    tf.close();
-    String state = doc["state"];
-    if (state == "running") {
-      Serial.printf("Task %s is already running, skipping recursive call.\n", baseId.c_str());
-      return false; // Prevent recursive run
-    }
-    doc["state"] = "running";
-    String out;
-    serializeJson(doc, out);
-    File tfw = LittleFS.open(tpath, FILE_WRITE);
-    if (tfw) {
-      tfw.print(out);
-      tfw.close();
-    }
-  }
-
-  // 2. Get script content
-  String scriptContent = getScript(baseId);
   if (scriptContent.length() > 0) {
-    Serial.printf("Running script for task %s\n", baseId.c_str());
+    Serial.printf("Running script for task %s in a new thread\n", taskId.c_str());
     lua_State *L = luaL_newstate();
     if (L) {
       luaL_openlibs(L);
@@ -247,31 +222,84 @@ bool TaskManager::runTask(const String &id) {
       int result = luaL_dostring(L, scriptContent.c_str());
       if (result != LUA_OK) {
         const char *error = lua_tostring(L, -1);
-        Serial.printf("Lua error in task %s: %s\n", baseId.c_str(), error);
+        Serial.printf("Lua error in task %s: %s\n", taskId.c_str(), error);
       }
 
       lua_close(L);
     } else {
-      Serial.printf("Failed to create Lua state for task %s\n", baseId.c_str());
+      Serial.printf("Failed to create Lua state for task %s\n", taskId.c_str());
     }
   }
 
-  // 3. Set task state back to "stopped"
-  tf = LittleFS.open(tpath, FILE_READ);
+  // After script execution, set the task state back to "stopped"
+  self->stopTask(taskId);
+
+  // Remove task from the running list as it has now finished
+  self->_runningTasks.erase(taskId);
+
+  // Clean up and delete the task
+  delete params;
+  vTaskDelete(NULL);
+}
+
+/**
+ * @brief Runs a specific task, executing its Lua script if it exists.
+ */
+bool TaskManager::runTask(const String &id) {
+  String baseId = id;
+  if (baseId.endsWith(".json")) {
+    baseId.remove(baseId.length() - 5);
+  }
+
+  // 1. Check if task exists and is not already running
+  String tpath = String("/tasks/") + baseId + ".json";
+  if (!LittleFS.exists(tpath)) {
+    Serial.printf("Cannot run task, not found: %s\n", tpath.c_str());
+    return false;
+  }
+
+  DynamicJsonDocument doc(1024);
+  File tf = LittleFS.open(tpath, FILE_READ);
   if (tf) {
     deserializeJson(doc, tf);
     tf.close();
-    doc["state"] = "stopped";
+    String state = doc["state"];
+    if (state == "running") {
+      Serial.printf("Task %s is already running. Skipping.\n", baseId.c_str());
+      return false; // Prevent multiple instances
+    }
+    // Set state to "running"
+    doc["state"] = "running";
     String out;
     serializeJson(doc, out);
     File tfw = LittleFS.open(tpath, FILE_WRITE);
     if (tfw) {
       tfw.print(out);
       tfw.close();
+    } else {
+      return false; // Failed to update state
     }
+  } else {
+    return false; // Failed to read task file
   }
 
-  return true;
+  // 2. Create parameters for the new task
+  LuaTaskParams* params = new LuaTaskParams{this, baseId};
+
+  TaskHandle_t taskHandle = NULL;
+
+  // 3. Create and start the FreeRTOS task
+  BaseType_t taskCreated = xTaskCreate(_luaTaskRunner, ("lua_" + baseId).c_str(), 8192, params, 5, &taskHandle);
+
+  _runningTasks[baseId] = taskHandle;
+  if (taskCreated != pdPASS) {
+    Serial.printf("Failed to create task for script %s\n", baseId.c_str());
+    delete params; // Clean up if task creation failed
+    stopTask(baseId); // Revert state to "stopped"
+    return false;
+  }
+
+  return true; // Task creation request was successful
 }
 
 /**
@@ -345,6 +373,16 @@ bool TaskManager::stopTask(const String &id) {
     baseId.remove(baseId.length() - 5);
   }
   String tpath = String("/tasks/") + baseId + ".json";
+
+  // If the task is actively running, stop its FreeRTOS task
+  if (_runningTasks.count(baseId)) {
+    TaskHandle_t handle = _runningTasks[baseId];
+    if (handle) {
+      vTaskDelete(handle);
+      _runningTasks.erase(baseId);
+      Serial.printf("Force-stopped running task: %s\n", baseId.c_str());
+    }
+  }
   if (!LittleFS.exists(tpath)) {
     Serial.printf("Cannot stop task, not found: %s\n", tpath.c_str());
     return false;

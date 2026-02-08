@@ -1,5 +1,6 @@
 /**
  * @file TaskManager.h
+ * @note This file is part of the WASH-PRO-CORE project.
  * @author Masyukov Pavel
  * @brief Definition of the TaskManager class for the WASH-PRO project.
  * @version 1.0.0
@@ -9,6 +10,9 @@
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
+#include <freertos/FreeRTOS.h>
+#include <map>
+#include <freertos/task.h>
 
 /**
  * @class TaskManager
@@ -84,12 +88,28 @@ public:
    */
   String getTaskWithScriptJSON(const String &id);
 
+private:
+  /**
+   * @struct LuaTaskParams
+   * @brief Holds parameters needed to run a Lua script in a separate task.
+   */
+  struct LuaTaskParams {
+    TaskManager* instance;
+    String taskId;
+  };
+
+  /**
+   * @brief Static function that serves as a FreeRTOS task entry point to run a Lua script.
+   * @param pvParameters A void pointer to a LuaTaskParams struct.
+   */
+  static void _luaTaskRunner(void* pvParameters);
+
+  // Map to store handles of running tasks
+  std::map<String, TaskHandle_t> _runningTasks;
+
 public:
   /**
-   * @brief Stops a specific task.
-   * This is an internal function that marks the task's state as "stopped" in its metadata file.
-   * @param id The unique ID of the task to stop.
-   * @return True if the task was found and marked as stopped, false otherwise.
+   * @brief Stops a running task and/or updates its state to "stopped".
    */
   bool stopTask(const String &id);
 };
