@@ -40,7 +40,7 @@ void setup() {
     Serial.println("LittleFS Mount Failed. It may need to be formatted.");
     // You might want to add a way to format the filesystem, e.g., on a specific boot condition.
   } else {
-    Serial.println("LittleFS Mounted.");
+    Serial.println("LittleFS Mounted."); 
   }
 
   sys.begin();
@@ -119,7 +119,7 @@ void setup() {
       }
     }
   });
-  
+
   // API endpoint to handle creating, renaming, and saving scripts for tasks.
   server.on("/api/tasks", HTTP_POST, [](AsyncWebServerRequest *request){
     String id = request->hasParam("id", true) ? request->getParam("id", true)->value() : "";
