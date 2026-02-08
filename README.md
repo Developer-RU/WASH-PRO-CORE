@@ -87,29 +87,29 @@ A modern, responsive UI with a sidebar menu that displays correctly on both desk
     pio run --target uploadfs
     ```
 
-## Тестирование
+## Web Server API Testing
 
-Проект включает набор интеграционных тестов для проверки API веб-сервера. Тесты написаны на Python и запускаются с компьютера, подключенного к точке доступа Wi-Fi устройства.
+The project includes a suite of integration tests to verify the web server's API. These tests are written in Python and are run from a computer connected to the device's Wi-Fi access point.
 
-### Требования
+### Requirements
 
--   **Python**: Рекомендуется версия 3.8 или выше.
--   **Библиотека `requests`**: Необходима для отправки HTTP-запросов.
+-   **Python**: Version 3.8 or higher is recommended.
+-   **`requests` library**: Required for sending HTTP requests.
 
-### Установка зависимостей
+### Installing Dependencies
 
-1.  Если у вас не установлен Python, скачайте его с python.org.
-2.  Установите библиотеку `requests` через терминал:
+1.  If you don't have Python installed, download it from python.org.
+2.  Install the `requests` library via the terminal:
     ```bash
     pip install requests
     ```
 
-### Запуск тестов
+### Running the Tests
 
-1.  **Подключитесь к устройству**: Включите ESP32 и подключите компьютер к его Wi-Fi сети (`WASH-PRO-CORE-xxxx`). IP-адрес по умолчанию: `192.168.4.1`.
-2.  **Выполните команду** в терминале из корневой папки проекта:
+1.  **Connect to the device**: Power on the ESP32 and connect your computer to its Wi-Fi network (e.g., `WASH-PRO-CORE-xxxx`). The default IP address is `192.168.4.1`.
+2.  **Execute the command** in the terminal from the project's root folder:
     ```bash
     python test/run_tests.py
     ```
 
-Скрипт выполнит все тесты и выведет итоговую статистику.
+The script will execute all tests and print a summary of the results.
